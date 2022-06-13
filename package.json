@@ -1,0 +1,19 @@
+{
+  "name": "thought-police",
+  "version": "1.0.0",
+  "description": "Thought Police Bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "author": "blubberalls",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.15.0",
+    "@discordjs/rest": "^0.5.0",
+    "discord-api-types": "^0.33.5",
+    "discord.js": "^13.8.0",
+    "dotenv": "^16.0.1",
+    "redis": "^4.1.0"
+  }
+}
