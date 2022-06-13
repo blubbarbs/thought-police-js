@@ -4,7 +4,6 @@ async function execute(interaction, args) {
     const pinCount = pinnedMessages.size;
 
     await interaction.reply({ content: `The amount of pins left for this channel is: ${50 - pinCount}`, ephemeral: true});
-
 }
 
 module.exports = {
