@@ -5,7 +5,7 @@ const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
-const redis = createClient({ url: process.env.REDIS_URL });
+const redis = createClient({ url: process.env.REDIS_TLS_URL });
 
 CommandHandler.reloadCommands(client);
 
