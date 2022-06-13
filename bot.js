@@ -10,6 +10,7 @@ const redis = createClient({ url: process.env.REDIS_URL });
 CommandHandler.reloadCommands(client);
 
 client.on('ready', async () => {
+    redis.on('error', (err) => console.log(`Console error! ${err}`));
     await redis.connect();
     
     client.redis = redis;
