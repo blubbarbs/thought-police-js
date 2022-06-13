@@ -15,8 +15,7 @@ client.on('ready', async () => {
     
     setInterval(async () => {
         await redis.ping();
-        console.log('Did heartbeat');
-    }, 30000);
+    }, 60000);
 
     client.redis = redis;
     client.guild = await client.guilds.fetch('209496826204782592');
@@ -25,7 +24,6 @@ client.on('ready', async () => {
 
 client.on('shardDisconnect', async () => {
     await client.redis.disconnect();
-    console.log('Exited');
 }); 
 
 client.login(process.env.TOKEN);
