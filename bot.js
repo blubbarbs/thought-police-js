@@ -5,7 +5,7 @@ const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
-const redis = createClient({ url: process.env.REDIS_TLS_URL });
+const redis = createClient({ url: process.env.REDIS_URL });
 
 CommandHandler.reloadCommands(client);
 
@@ -13,6 +13,11 @@ client.on('ready', async () => {
     redis.on('error', (err) => console.log(`Console error! ${err}`));
     await redis.connect();
     
+    setInterval(async () => {
+        await redis.get('null');
+        console.log('Did heartbeat');
+    }, 30000);
+
     client.redis = redis;
     client.guild = await client.guilds.fetch('209496826204782592');
     client.announcementChannel = await client.guild.channels.fetch('794518074425475072');  
