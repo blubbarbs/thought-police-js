@@ -14,7 +14,7 @@ client.on('ready', async () => {
     await redis.connect();
     
     setInterval(async () => {
-        await redis.get('null');
+        await redis.ping();
         console.log('Did heartbeat');
     }, 30000);
 
