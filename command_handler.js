@@ -173,8 +173,8 @@ function reloadCommands(client) {
             slashCommandBuilder.setName(commandName);
             slashCommandBuilder.setDescription(command.description);
             slashCommandBuilder.setDMPermission(command?.permitDM);
-            slashCommandBuilder.setDefaultMemberPermissions(command?.permissions);
             buildCommandArguments(slashCommandBuilder, command?.args);
+            
             commands.set(commandName, command);
         }
         else if (!fileName.includes('.')) {
@@ -197,6 +197,7 @@ function reloadCommands(client) {
                     slashsubCommandBuilder.setName(subcommandName);
                     slashsubCommandBuilder.setDescription(subcommand.description);
                     buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
+                    
                     slashCommandBuilder.addSubcommand(slashsubCommandBuilder);
                     commands.set(fileName + '.' + subcommandName, subcommand);
                 }
@@ -221,6 +222,7 @@ function reloadCommands(client) {
                             slashsubCommandBuilder.setName(subcommandName);
                             slashsubCommandBuilder.setDescription(subcommand.description);
                             buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
+                            
                             slashsubCommandGroupBuilder.addSubcommand(slashsubCommandBuilder);
                             commands.set(fileName + '.' + fileName2 + '.' + subcommandName, subcommand);
                         }

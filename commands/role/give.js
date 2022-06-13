@@ -8,16 +8,27 @@ async function execute(interaction, args) {
 
     if (target.roles.cache.has(role.id)) {
         await interaction.reply({ content: `${target.displayName} already has this role!`, ephemeral: true });
+        return;
     }
-    else if (reason == null) {
-        await target.roles.add(role);
-        await interaction.reply( {content: `${target.displayName} has been given the role.`, ephemeral: true});
-        await client.announcementChannel.send(`${target} has been awarded the ${role.name} role by ${interaction.member}!`);
+
+    await target.roles.add(role);
+    await interaction.reply({ content: `${target.displayName} has been given the role.`, ephemeral: true });
+    
+    if (reason == null) {        
+        if (target != interaction.member) {
+            await client.announcementChannel.send(`${target} has been awarded the ${role.name} role by ${interaction.member}!`);
+        }
+        else {
+            await client.announcementChannel.send(`${target} has been awarded the ${role.name}!`);
+        }
     }
-    else {
-        await target.roles.add(role, reason);
-        await interaction.reply( {content: `${target.displayName} has been given the role.`, ephemeral: true});
-        await client.announcementChannel.send(`${target} has been awarded the ${role.name} role by ${interaction.member}!\n \`REASON: ${reason}\``);
+    else {        
+        if (target != interaction.member) {
+            await client.announcementChannel.send(`${target} has been awarded the ${role.name} role by ${interaction.member}!\n\`REASON: ${reason}\``);
+        }
+        else {
+            await client.announcementChannel.send(`${target} has been awarded the ${role.name} role!\n\`REASON: ${reason}\``);
+        }        
     }
 }
 

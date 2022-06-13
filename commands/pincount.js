@@ -43,10 +43,10 @@ async function execute(interaction, args) {
         const count = await countPins(channel, target);
 
         if (target == interaction.member) {
-            await interaction.reply({ content: `Your total pin count in ${channel} is: ${count}.`, ephemeral: true});
+            await interaction.reply({ content: `Your total pin count in ${channel} is: ${count}.`, ephemeral: true });
         }
         else {
-            await interaction.reply({ content: `The total pin count for ${target.displayName} in ${channel} is: ${count}.`, ephemeral: true});
+            await interaction.reply({ content: `The total pin count for ${target.displayName} in ${channel} is: ${count}.`, ephemeral: true });
         }
     }
 }
