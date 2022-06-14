@@ -1,13 +1,14 @@
-const { createWriteStream, createReadStream, mkdirSync } = require('node:fs');
+const { createWriteStream, createReadStream, existsSync, mkdirSync } = require('node:fs');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
 const { stream } = require('undici');
 
 const jingleURL = 'https://storage.googleapis.com/discord_audio_jingles/MC%20Ballyhoo%20Laugh.mp3';
 
 async function getVoiceStreamFromURL(url) {
-    if (!fs.existsSync('./jingles')){
-        fs.mkdirSync('./jingles');
+    if (existsSync('./jingles')){
+        mkdirSync('./jingles');
     }
+    
     await stream(url, () => createWriteStream('./jingles/jingle.mp3'));
 
     return createReadStream('./jingles/jingle.mp3');
@@ -17,10 +18,11 @@ async function execute(interaction, args) {
     const voiceChannel = interaction.member.voice.channel;
 
     if (voiceChannel == null || voiceChannel == undefined) {
-        await interaction.reply({ content: 'You are not connected to a voice channel.' , ephemeral: true});
+        await interaction.reply({ content: 'You are not connected to a voice channel.' , ephemeral: true });
     }
     else {
         await interaction.reply({ content: 'Done!', ephemeral: true });
+        
         const voiceStream = await getVoiceStreamFromURL(jingleURL);
         const audioResource = createAudioResource(voiceStream);
         const connection = joinVoiceChannel({
