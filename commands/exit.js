@@ -7,7 +7,6 @@ async function execute(interaction) {
 }
 
 module.exports = {
-    name: 'exit',
     description: 'Exits the bot.',
     permissions: Permissions.FLAGS.ADMINISTRATOR,
     execute: execute,

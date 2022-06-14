@@ -58,7 +58,6 @@ async function execute(interaction, args) {
 }
 
 module.exports = {
-    name: 'color',
     description: 'Changes the color of your name to a given hex color.',
     args: {
         color: {
