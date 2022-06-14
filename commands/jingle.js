@@ -5,7 +5,7 @@ const { stream } = require('undici');
 const jingleURL = 'https://storage.googleapis.com/discord_audio_jingles/MC%20Ballyhoo%20Laugh.mp3';
 
 async function getVoiceStreamFromURL(url) {
-    if (existsSync('./jingles')){
+    if (!existsSync('./jingles')){
         mkdirSync('./jingles');
     }
     
