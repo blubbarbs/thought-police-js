@@ -20,7 +20,7 @@ async function execute(interaction, args) {
         await interaction.reply({ content: 'You are not connected to a voice channel.' , ephemeral: true});
     }
     else {
-        await interaction/reply({ content: 'Done!', ephemeral: true });
+        await interaction.reply({ content: 'Done!', ephemeral: true });
         const voiceStream = await getVoiceStreamFromURL(jingleURL);
         const audioResource = createAudioResource(voiceStream);
         const connection = joinVoiceChannel({
