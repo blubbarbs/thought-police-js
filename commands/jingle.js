@@ -1,18 +1,4 @@
-const { createWriteStream, createReadStream, existsSync, mkdirSync } = require('node:fs');
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
-const { stream } = require('undici');
-
 const jingleURL = 'https://storage.googleapis.com/discord_audio_jingles/MC%20Ballyhoo%20Laugh.mp3';
-
-async function getVoiceStreamFromURL(url) {
-    if (!existsSync('./jingles')){
-        mkdirSync('./jingles');
-    }
-    
-    await stream(url, () => createWriteStream('./jingles/jingle.mp3'));
-
-    return createReadStream('./jingles/jingle.mp3');
-}
 
 async function execute(interaction, args) {
     const voiceChannel = interaction.member.voice.channel;
@@ -21,24 +7,8 @@ async function execute(interaction, args) {
         await interaction.reply({ content: 'You are not connected to a voice channel.' , ephemeral: true });
     }
     else {
+        await interaction.client.jingleHandler.playJingle(voiceChannel, jingleURL);
         await interaction.reply({ content: 'Done!', ephemeral: true });
-        
-        const voiceStream = await getVoiceStreamFromURL(jingleURL);
-        const audioResource = createAudioResource(voiceStream);
-        const connection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: voiceChannel.guild.id,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator
-        });
-        const audioPlayer = createAudioPlayer();
-
-        connection.subscribe(audioPlayer);
-        audioPlayer.play(audioResource);
-
-        audioPlayer.on(AudioPlayerStatus.Idle, () => {
-            audioPlayer.stop();
-            connection.destroy();
-        });
     }
 }
 
