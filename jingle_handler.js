@@ -1,5 +1,6 @@
 const { createWriteStream, createReadStream, existsSync, mkdirSync } = require('node:fs');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
+const { stream } = require('undici');
 
 async function getAudioStreamFromURL(url) {
     if (!existsSync('./jingles')){
@@ -14,43 +15,43 @@ async function getAudioStreamFromURL(url) {
 class JingleHandler {
     constructor() {
         this.audioPlayer = createAudioPlayer();
-        this.currentVoiceChannel = null;
+        this.voiceChannel = null;
         this.currentConnection = null;
 
-        audioPlayer.on(AudioPlayerStatus.Idle, disconnect);        
+        this.audioPlayer.on(AudioPlayerStatus.Idle, () => this.disconnect());        
     }
 
     disconnect() {
-        audioPlayer.stop();
-        currentConnection.destroy();
+        this.audioPlayer.stop();
+        this.currentConnection.destroy();
 
-        currentConnection = null;
-        currentVoiceChannel = null;
+        this.voiceChannel = null;
+        this.currentConnection = null;
     }
 
     connect(voiceChannel) {
-        currentConnection = joinVoiceChannel({
+        this.voiceChannel = voiceChannel;
+        this.currentConnection = joinVoiceChannel({
             channelId: voiceChannel.id,
             guildId: voiceChannel.guild.id,
             adapterCreator: voiceChannel.guild.voiceAdapterCreator
         });
-        currentVoiceChannel = voiceChannel;
 
-        currentConnection.subscribe(audioPlayer);
+        this.currentConnection.subscribe(this.audioPlayer);
     }
 
     async playJingle(voiceChannel, jingleURL) {        
-        if (currentVoiceChannel != null && voiceChannel != currentVoiceChannel) {
-            disconnect();
+        if (this.voiceChannel != null && this.voiceChannel != voiceChannel) {
+            this.disconnect();
         }
 
-        if (currentConnection == null) {
-            connect(voiceChannel);
+        if (this.currentConnection == null) {
+            this.connect(voiceChannel);
         }
         const audioStream = await getAudioStreamFromURL(jingleURL);
         const audioResource = createAudioResource(audioStream);        
 
-        audioPlayer.play(audioResource);
+        this.audioPlayer.play(audioResource);
     }
 }
 

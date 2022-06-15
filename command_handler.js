@@ -34,7 +34,7 @@ function createOptionBuilder(name, arg) {
         }
         
         if ('choices' in arg) {
-            optionBuilder.addChoices(getCommandArgumentChoices(arg?.choices));
+            optionBuilder.addChoices(...getCommandArgumentChoices(arg?.choices));
         }
 
         return optionBuilder;
@@ -52,9 +52,11 @@ function buildCommandArguments(commandBuilder, args) {
                 commandBuilder.addStringOption(createOptionBuilder(name, arg));   
                 break;
             case 'int':
+            case 'integer':
                 commandBuilder.addIntegerOption(createOptionBuilder(name, arg));           
                 break;
             case 'bool':
+            case 'boolean':
                 commandBuilder.addBooleanOption(createOptionBuilder(name, arg));           
                 break;
             case 'number':
@@ -85,83 +87,90 @@ function buildCommandArguments(commandBuilder, args) {
     }
 }
 
+async function onInteract(interaction) {
+    if (!interaction.isCommand()) {
+        return;
+    }
+
+    let commandName = interaction.commandName;
+    commandName += interaction.options._group != null ? `.${interaction.options._group}` : '';
+    commandName += interaction.options._subcommand != null ? `.${interaction.options._subcommand}` : '';
+    const commands = interaction.client.commandHandler.commands;
+    const command = commands.get(commandName);
+
+    if ('permissions' in command && !interaction.member.permissions.has(command.permissions)) {
+        await interaction.reply({ content: 'You do not have permission to use this command. ', ephemeral: true });
+        return;
+    }
+
+    const args = {};
+
+    if ('args' in command) {
+        for (const [name, arg] of Object.entries(command.args)) {            
+            switch (arg?.type) {
+                case 'string':
+                    args[name] = interaction.options.getString(name);
+                    break;
+                case 'int':
+                case 'integer':
+                    args[name] = parseInt(interaction.options.getInteger(name));
+                    break;
+                case 'bool':
+                case 'boolean':
+                    args[name] = interaction.options.getBoolean(name);
+                    break;
+                case 'number':
+                    args[name] = parseFloat(interaction.options.getNumber(name));
+                    break;
+                case 'user':
+                    args[name] = interaction.options.getUser(name);
+                    break;
+                case 'member':
+                    args[name] = interaction.options.getMember(name);
+                    break;                    
+                case 'channel':
+                    args[name] = interaction.options.getChannel(name);
+                    break;
+                case 'role':
+                    args[name] = interaction.options.getRole(name);
+                    break;
+                case 'mentionable':
+                    args[name] = interaction.options.getMentionable(name);
+                    break;
+                case 'attachment':
+                    args[name] = interaction.options.getAttachment(name);
+                    break;
+                default:
+                    args[name] = interaction.options.getString(name);
+                    break; 
+            }
+            
+            if ('permissions' in arg && args[name] != null && !interaction.member.permissions.has(arg.permissions)) {
+                await interaction.reply({ content: `You do not have permission to use the "${name}" argument.`, ephemeral: true });
+                return;
+            }
+        }
+    }
+
+    try {
+        await command.execute(interaction, args);
+    } 
+    catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
+    
+}    
+
+async function defaultSubcommandGroupExecute(interaction) {
+    await interaction.reply({ content: 'You need to specify a subcommand to run this function.', ephemeral: true });
+}
+
 class CommandHandler {
     constructor(client) {
         this.client = client;
         this.commands = new Collection();
     }
-
-    async onInteract(interaction) {
-        if (!interaction.isCommand()) {
-            return;
-        }
-    
-        let commandName = interaction.commandName;
-        commandName += interaction.options._group != null ? `.${interaction.options._group}` : '';
-        commandName += interaction.options._subcommand != null ? `.${interaction.options._subcommand}` : '';
-        const command = commands.get(commandName);
-    
-        if ('permissions' in command && !interaction.member.permissions.has(command.permissions)) {
-            await interaction.reply({ content: 'You do not have permission to use this command. ', ephemeral: true });
-            return;
-        }
-    
-        const args = {};
-    
-        if ('args' in command) {
-            for (const [name, arg] of Object.entries(command.args)) {            
-                switch (arg?.type) {
-                    case 'string':
-                        args[name] = interaction.options.getString(name);
-                        break;
-                    case 'int':
-                        args[name] = interaction.options.getInteger(name);
-                        break;
-                    case 'bool':
-                        args[name] = interaction.options.getBoolean(name);
-                        break;
-                    case 'number':
-                        args[name] = interaction.options.getNumber(name);
-                        break;
-                    case 'user':
-                        args[name] = interaction.options.getUser(name);
-                        break;
-                    case 'member':
-                        args[name] = interaction.options.getMember(name);
-                        break;                    
-                    case 'channel':
-                        args[name] = interaction.options.getChannel(name);
-                        break;
-                    case 'role':
-                        args[name] = interaction.options.getRole(name);
-                        break;
-                    case 'mentionable':
-                        args[name] = interaction.options.getMentionable(name);
-                        break;
-                    case 'attachment':
-                        args[name] = interaction.options.getAttachment(name);
-                        break;
-                    default:
-                        args[name] = interaction.options.getString(name);
-                        break; 
-                }
-                
-                if ('permissions' in arg && args[name] != null && !interaction.member.permissions.has(arg.permissions)) {
-                    await interaction.reply({ content: `You do not have permission to use the "${name}" argument.`, ephemeral: true });
-                    return;
-                }        
-            }
-        }
-    
-        try {
-            await command.execute(interaction, args);
-        } 
-        catch (error) {
-            console.error(error);
-            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-        }
-        
-    }    
 
     reloadCommands() {
         const commandsPath = path.join(__dirname, 'commands');
@@ -179,20 +188,23 @@ class CommandHandler {
                 slashCommandBuilder.setDescription(command.description);
                 slashCommandBuilder.setDMPermission(command?.permitDM);
                 buildCommandArguments(slashCommandBuilder, command?.args);
-                
-                commands.set(commandName, command);
+
+                slashCommandBuilders.push(slashCommandBuilder);
+                this.commands.set(commandName, command);
             }
-            else if (!fileName.includes('.')) {
+            else if (!fileName.includes('.') && fs.existsSync(path.join(commandsPath, fileName, '.js'))) {
                 const commandsPath2 = path.join(commandsPath, fileName);
                 const fileNames2 = fs.readdirSync(commandsPath2);
-    
-                slashCommandBuilder.setName(fileName);
-    
+        
                 for (const fileName2 of fileNames2) {
                     if (fileName2 == '.js') {
                         const data = require(path.join(commandsPath2, fileName2));
-    
+
+                        slashCommandBuilder.setName(fileName);
                         slashCommandBuilder.setDescription(data.description);
+
+                        slashCommandBuilders.push(slashCommandBuilder);
+                        this.commands.set(fileName, { execute: defaultSubcommandGroupExecute, ...data });
                     }
                     else if (fileName2.endsWith('.js')) {
                         const subcommand = require(path.join(commandsPath2, fileName2));
@@ -204,20 +216,21 @@ class CommandHandler {
                         buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
                         
                         slashCommandBuilder.addSubcommand(slashsubCommandBuilder);
-                        commands.set(fileName + '.' + subcommandName, subcommand);
+                        this.commands.set(fileName + '.' + subcommandName, subcommand);
                     }
-                    else if (!fileName2.includes('.')) {
+                    else if (!fileName2.includes('.') && fs.existsSync(path.join(commandsPath2, fileName2, '.js'))) {
                         const commandsPath3 = path.join(commandsPath2, fileName2)
                         const fileNames3 = fs.readdirSync(commandsPath3);
                         const slashsubCommandGroupBuilder = new SlashCommandSubcommandGroupBuilder();
     
-                        slashsubCommandGroupBuilder.setName(fileName2);
-    
                         for (const fileName3 of fileNames3) {
                             if (fileName3 == '.js') {
                                 const data = require(path.join(commandsPath3, fileName3));
-    
+
+                                slashsubCommandGroupBuilder.setName(fileName2);
                                 slashsubCommandGroupBuilder.setDescription(data.description);
+
+                                slashCommandBuilder.addSubcommandGroup(slashsubCommandGroupBuilder);
                             }
                             else if (fileName3.endsWith('.js')) {
                                 const subcommand = require(path.join(commandsPath3, fileName3));
@@ -229,22 +242,18 @@ class CommandHandler {
                                 buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
                                 
                                 slashsubCommandGroupBuilder.addSubcommand(slashsubCommandBuilder);
-                                commands.set(fileName + '.' + fileName2 + '.' + subcommandName, subcommand);
+                                this.commands.set(fileName + '.' + fileName2 + '.' + subcommandName, subcommand);
                             }
                         }
-    
-                        slashCommandBuilder.addSubcommandGroup(slashsubCommandGroupBuilder);
                     }
                 }
-            }
-    
-            slashCommandBuilders.push(slashCommandBuilder);
+            }    
         }
         
         restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: slashCommandBuilders })
         .then(() =>  {
             console.log('Successfully registered commands.');
-            client.on('interactionCreate', onInteract);
+            this.client.on('interactionCreate', onInteract);
         })
         .catch(console.error);        
     }

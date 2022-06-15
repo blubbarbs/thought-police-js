@@ -1,16 +1,12 @@
 const { Permissions } = require('discord.js');
-const hashStarter = 'roleinfo.';
 
 async function execute(interaction, args) {
     const client = interaction.client;
     const role = args['role'];
-    const hash = hashStarter + role.id;
     
-    for (const [key, value] of Object.entries(args)) {
-        if (key != 'role' && value != null && value != undefined) {
-            await client.redis.hSet(hash, key, value);
-        }
-    }
+    delete args['role'];
+
+    await client.roleDataHandler.set(role.id, args);
 
     await interaction.reply({ content: `Updated information for ${role.name}`, ephemeral: true });
 }

@@ -1,12 +1,11 @@
 const { Permissions } = require('discord.js');
-const hashStarter = 'roleinfo.';
 
 async function execute(interaction, args) {
     const client = interaction.client;
     const role = args['role'];
-    const roleInfo = await client.redis.hGetAll(hashStarter + role.id);
+    const roleInfo = await client.roleDataHandler.get(role.id);
 
-    if (roleInfo == undefined) {
+    if (Object.keys(roleInfo).length == 0) {
         await interaction.reply({ content: `There is no information available for this role.`, ephemeral: true });
     }
     else {
