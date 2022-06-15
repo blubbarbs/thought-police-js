@@ -33,8 +33,6 @@ class JingleHandler {
         try {
             const audioStreamReq = await request(jingleURL);
 
-            console.log(audioStreamReq.headers);
-
             return 'content-type' in audioStreamReq.headers && (audioStreamReq.headers['content-type'] == 'audio/mpeg' || audioStreamReq.headers['content-type'] == 'application/ogg');
         } 
         catch(e) {
