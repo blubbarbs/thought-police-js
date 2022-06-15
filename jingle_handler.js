@@ -1,16 +1,5 @@
-const { createWriteStream, createReadStream, existsSync, mkdirSync } = require('node:fs');
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
-const { stream } = require('undici');
-
-async function getAudioStreamFromURL(url) {
-    if (!existsSync('./jingles')){
-        mkdirSync('./jingles');
-    }
-    
-    await stream(url, () => createWriteStream('./jingles/jingle.mp3'));
-
-    return createReadStream('./jingles/jingle.mp3');
-}
+const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } = require('@discordjs/voice');
+const { request } = require('undici');
 
 class JingleHandler {
     constructor() {
@@ -40,7 +29,21 @@ class JingleHandler {
         this.currentConnection.subscribe(this.audioPlayer);
     }
 
+    async isAudioURL(jingleURL) {
+        try {
+            const audioStreamReq = await request(jingleURL);
+
+            console.log(audioStreamReq.headers);
+
+            return 'content-type' in audioStreamReq.headers && (audioStreamReq.headers['content-type'] == 'audio/mpeg' || audioStreamReq.headers['content-type'] == 'application/ogg');
+        } 
+        catch(e) {
+            return false;
+        }
+    }
+
     async playJingle(voiceChannel, jingleURL) {        
+
         if (this.voiceChannel != null && this.voiceChannel != voiceChannel) {
             this.disconnect();
         }
@@ -48,8 +51,8 @@ class JingleHandler {
         if (this.currentConnection == null) {
             this.connect(voiceChannel);
         }
-        const audioStream = await getAudioStreamFromURL(jingleURL);
-        const audioResource = createAudioResource(audioStream);        
+        const audioStreamReq = await request(jingleURL);
+        const audioResource = createAudioResource(audioStreamReq.body);        
 
         this.audioPlayer.play(audioResource);
     }

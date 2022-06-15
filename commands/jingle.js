@@ -1,10 +1,13 @@
-const jingleURL = 'https://storage.googleapis.com/discord_audio_jingles/MC%20Ballyhoo%20Laugh.mp3';
-
 async function execute(interaction, args) {
     const voiceChannel = interaction.member.voice.channel;
+    const jingleHandler = interaction.client.jingleHandler;
     const url = args['url'];
+    const isValidURL = await jingleHandler.isAudioURL(url);
 
-    if (voiceChannel == null || voiceChannel == undefined) {
+    if (!isValidURL) {
+        await interaction.reply({ content: 'That is not a valid audio URL.', ephemeral: true });
+    }
+    else if (voiceChannel == null || voiceChannel == undefined) {
         await interaction.reply({ content: 'You are not connected to a voice channel.' , ephemeral: true });
     }
     else {
