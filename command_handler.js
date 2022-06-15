@@ -16,7 +16,7 @@ function getCommandArgumentChoices(choices) {
         }
     }
     else {
-        for (const [name, value] of Object.entries(choices)) {
+        for (const [value, name] of Object.entries(choices)) {
             choiceList.push({ name: name, value: value });
         }
     }
@@ -113,14 +113,14 @@ async function onInteract(interaction) {
                     break;
                 case 'int':
                 case 'integer':
-                    args[name] = parseInt(interaction.options.getInteger(name));
+                    args[name] = interaction.options.getInteger(name);
                     break;
                 case 'bool':
                 case 'boolean':
                     args[name] = interaction.options.getBoolean(name);
                     break;
                 case 'number':
-                    args[name] = parseFloat(interaction.options.getNumber(name));
+                    args[name] = interaction.options.getNumber(name);
                     break;
                 case 'user':
                     args[name] = interaction.options.getUser(name);
