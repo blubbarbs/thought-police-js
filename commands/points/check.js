@@ -5,7 +5,6 @@ async function execute(interaction, args) {
     points = points == null ? 0 : +points;
 
     const test = await client.userDataHandler.get(target.id);
-    console.log(test);
 
     if (points == 0) {
         if (target == interaction.member) {

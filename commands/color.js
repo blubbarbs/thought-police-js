@@ -30,14 +30,13 @@ async function makeColorRole(guild, hexColor) {
 	}
 	
     const newRoleData = {
-		data: {
-			name: hexColor,
-			color: hexColor,
-		}
+		name: hexColor,
+		color: hexColor,
+        position: roles.length - ROLE_OFFSET
     };
     
     const role = await guild.roles.create(newRoleData);
-    role.setPosition(roles.length - ROLE_OFFSET);
+
     return role;
 }
 
@@ -45,7 +44,9 @@ async function execute(interaction, args) {
     const color = args['color'];
     const target = args['target'] != null ? args['target'] : interaction.member;
     const match = color.match(hexRegex);
-    
+
+    console.log(`Color: ${color} Target: ${target}`);
+
     if (match != null) {
         await colorMember(target, color);
         await interaction.reply({ content: `Colored.`, ephemeral: true });
@@ -53,8 +54,6 @@ async function execute(interaction, args) {
     else {
         await interaction.reply({ content: 'That is not a valid hex color. A valid hex color looks like this: "#A123CD"', ephemeral: true });
     }
-
-    console.log(`Color: ${color} Target: ${target}`);
 }
 
 module.exports = {
