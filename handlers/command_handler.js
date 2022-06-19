@@ -92,10 +92,10 @@ async function onInteract(interaction) {
         return;
     }
 
+    const commands = interaction.client.commandHandler.commands;
     let commandName = interaction.commandName;
     commandName += interaction.options._group != null ? `.${interaction.options._group}` : '';
     commandName += interaction.options._subcommand != null ? `.${interaction.options._subcommand}` : '';
-    const commands = interaction.client.commandHandler.commands;
     const command = commands.get(commandName);
 
     if ('permissions' in command && !interaction.member.permissions.has(command.permissions)) {
@@ -149,6 +149,32 @@ async function onInteract(interaction) {
                 await interaction.reply({ content: `You do not have permission to use the "${name}" argument.`, ephemeral: true });
                 return;
             }
+
+            if ('check' in arg) {
+                const argChecks = Array.isArray(arg.check) ? arg.check : [arg.check];
+                
+                for (const check of argChecks) {
+                    const checkResult = await check(interaction, args[name]);
+                    
+                    if (typeof checkResult == 'string') {
+                        await interaction.reply({ content: checkResult, ephemeral: true });
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    
+    if ('check' in command) {
+        const commandChecks = Array.isArray(command.check) ? command.check : [command.check];
+
+        for (const check of commandChecks) {
+            const checkResult = await check(interaction, args);
+                    
+            if (typeof checkResult == 'string') {
+                await interaction.reply({ content: checkResult, ephemeral: true });
+                return;
+            }
         }
     }
 
@@ -159,7 +185,6 @@ async function onInteract(interaction) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
-    
 }    
 
 async function defaultSubcommandGroupExecute(interaction) {
@@ -172,8 +197,7 @@ class CommandHandler {
         this.commands = new Collection();
     }
 
-    reloadCommands() {
-        const commandsPath = path.join(__dirname, 'commands');
+    reloadCommands(commandsPath) {
         const fileNames = fs.readdirSync(commandsPath);
         const slashCommandBuilders = [];
     

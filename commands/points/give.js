@@ -4,8 +4,7 @@ async function execute(interaction, args) {
     const client = interaction.client;
     const target = args['target'] == null ? interaction.member : args['target'];
     const deltaPoints = args['points'];
-    let points = await client.userDataHandler.get(target.id, 'points');
-    points = points == null ? 0 : +points;
+    let points = +(await client.userDataHandler.get(target.id, 'points'));
     points = points + deltaPoints;
 
     await client.userDataHandler.set(target.id, { points: points });

@@ -1,8 +1,10 @@
 require('dotenv').config();
 
-const { CommandHandler }  = require('./command_handler.js');
-const { RedisDataHandler } = require('./redis_data_handler.js');
-const { JingleHandler } = require('./jingle_handler.js');
+const path = require('node:path');
+const { CommandHandler }  = require('./handlers/command_handler.js');
+const { RedisDataHandler } = require('./handlers/redis_data_handler.js');
+const { JingleHandler } = require('./handlers/jingle_handler.js');
+const { PointsHandler } = require('./handlers/points_handler.js');
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
@@ -12,6 +14,7 @@ const redis = createClient({ url: process.env.REDIS_URL });
 client.roleDataHandler = new RedisDataHandler(redis, 'roleinfo.');
 client.userDataHandler = new RedisDataHandler(redis, 'userinfo.');
 client.commandHandler = new CommandHandler(client);
+client.pointsHandler = new PointsHandler();
 client.jingleHandler = new JingleHandler();
 client.redis = redis;
 
@@ -20,7 +23,8 @@ client.on('ready', async () => {
     
     client.redisHeartbeat = setInterval(async () => await redis.ping(), 60000);
     client.guild = await client.guilds.fetch('209496826204782592');
-    client.announcementChannel = await client.guild.channels.fetch('794518074425475072');  
+    client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
+    client.scoreboardChannel = await client.guild.channels.fetch();
 });
 
 client.on('shardDisconnect', async () => {
@@ -28,5 +32,5 @@ client.on('shardDisconnect', async () => {
     clearInterval(client.redisHeartbeat);
 }); 
 
-client.commandHandler.reloadCommands();
+client.commandHandler.reloadCommands(path.join(__dirname, 'commands'));
 client.login(process.env.TOKEN);
