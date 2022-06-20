@@ -6,7 +6,8 @@ async function execute(interaction, args) {
     const newPoints = args['points'];
 
     await client.userDataHandler.set(target.id, { points: newPoints });
-    
+    await client.scoreboardHandler.updateChannel();
+
     if (target == interaction.member) {
         await interaction.reply({ content: `Set your points to ${newPoints}.`, ephemeral: true });
     }

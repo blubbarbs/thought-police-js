@@ -8,7 +8,8 @@ async function execute(interaction, args) {
     points = points + deltaPoints;
 
     await client.userDataHandler.set(target.id, { points: points });
-    
+    await client.scoreboardHandler.updateChannel();    
+
     if (deltaPoints < 0) {
         if (target == interaction.member) {
             await interaction.reply({ content: `Took away ${deltaPoints} points. You now have ${points} points.`, ephemeral: true });

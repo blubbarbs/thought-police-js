@@ -29,6 +29,10 @@ class RedisDataHandler {
         }
         else {
             const allData = await this.redis.hGetAll(this.hash);
+            
+            for (const [id, data] of Object.entries(allData)) {
+                allData[id] = JSON.parse(data);
+            }
 
             return Object.keys(allData).length > 0 ? allData : {};
         }
@@ -51,7 +55,7 @@ class RedisDataHandler {
 
     async set(id, newData) {
         let data = await this.get(id);
-        data = Object.assign(newData, data);
+        data = Object.assign(data, newData);
 
         await this.redis.hSet(this.hash, id, JSON.stringify(data));
     }
