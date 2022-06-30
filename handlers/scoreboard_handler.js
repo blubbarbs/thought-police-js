@@ -3,7 +3,7 @@ class ScoreboardHandler {
         this.client = client;
     }
 
-    async getLeaderboard() {
+    async getLeaderboard(end, start) {
         const allData = await this.client.userDataHandler.get();
         const scores = {};
 
@@ -14,29 +14,38 @@ class ScoreboardHandler {
         }
     
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
-        const leaderboard = {};
+        const leaderboard = [];
+        start = start == null || start < 0 ? 0 : start;
+        end = end == null || end >= leaderboardKeysSorted.length ? leaderboardKeysSorted.length : end;
 
-        for (const key of leaderboardKeysSorted) {
-            leaderboard[key] = scores[key];
+        for (let i = start; i < end; i++) {
+            const key = leaderboardKeysSorted[i];
+            leaderboard[i] = { rank: '' + (i + 1), points: '' + scores[key], id: key };
         }
 
         return leaderboard;
     }
 
     async getLeaderboardText() {
-        const leaderboard = await this.getLeaderboard();
-        let text = '**___LEADERBOARD___**\n\n';
-
-        let ranking = 0;
-        for (const [id, score] of Object.entries(leaderboard)) {
-            text += `${++ranking}. <@${id}> - ${score}\n`;
-
-            if (ranking == 10) {
-                break;
-            }
+        const leaderboard = await this.getLeaderboard(10);
+        
+        if (leaderboard.length == 0) {
+            return '';
         }
+        else {
+            let text = '**___LEADERBOARD___**\n\n';
+            const top = leaderboard[0];
+            const bottom = leaderboard[leaderboard.length - 1];
+    
+            for (const entry of leaderboard) {
+                const paddedRankingString = `${entry.rank}.`.padEnd(bottom.rank.length, ' ');
+                const paddedPointsString = `${entry.points.padEnd(top.points.length, ' ')} points`;
 
-        return text;
+                text += `\`${paddedRankingString} ${paddedPointsString}\` - <@${entry.id}>\n`;
+            }
+    
+            return text;
+        }
     }
 
     async updateChannel() {
