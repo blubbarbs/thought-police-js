@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const path = require('node:path');
 const { CommandHandler }  = require('./handlers/command_handler.js');
-const { RedisDataHandler } = require('./handlers/redis_data_handler.js');
+const { HashDataHandler, KeyedDataHandler } = require('./handlers/redis_data_handler.js');
 const { JingleHandler } = require('./handlers/jingle_handler.js');
 const { ScoreboardHandler } = require('./handlers/scoreboard_handler.js');
 const { Client, Intents } = require('discord.js');
@@ -11,12 +11,13 @@ const { createClient } = require('redis');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MEMBERS] });
 const redis = createClient({ url: process.env.REDIS_URL });
 
-client.roleDataHandler = new RedisDataHandler(redis, 'roleinfo.');
-client.userDataHandler = new RedisDataHandler(redis, 'userinfo.');
+client.redis = redis;
+client.roleDataHandler = new HashDataHandler(redis, 'roleinfo.');
+client.userDataHandler = new HashDataHandler(redis, 'userinfo.');
+client.dataHandler = new KeyedDataHandler(redis);
 client.commandHandler = new CommandHandler(client);
 client.scoreboardHandler = new ScoreboardHandler(client);
 client.jingleHandler = new JingleHandler();
-client.redis = redis;
 
 client.on('ready', async () => {
     await redis.connect();

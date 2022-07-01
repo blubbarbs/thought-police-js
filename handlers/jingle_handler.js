@@ -41,7 +41,6 @@ class JingleHandler {
     }
 
     async playJingle(voiceChannel, jingleURL) {        
-
         if (this.voiceChannel != null && this.voiceChannel != voiceChannel) {
             this.disconnect();
         }
@@ -49,6 +48,7 @@ class JingleHandler {
         if (this.currentConnection == null) {
             this.connect(voiceChannel);
         }
+
         const audioStreamReq = await request(jingleURL);
         const audioResource = createAudioResource(audioStreamReq.body);        
 

@@ -1,4 +1,12 @@
-class RedisDataHandler {
+function dateReviver(key, value) {
+    if (Date.parse(value) != 'NaN') {
+        return new Date(value);
+    }
+
+    return value;
+}
+
+class HashDataHandler {
     constructor(redis, hash) {
         this.redis = redis;
         this.hash = hash;
@@ -38,6 +46,13 @@ class RedisDataHandler {
         }
     }
 
+    async set(id, newData) {
+        let data = await this.get(id);
+        data = Object.assign(data, newData);
+
+        await this.redis.hSet(this.hash, id, JSON.stringify(data));
+    }
+
     async delete(id, ...keys) {
         if (keys.length == 0) {
             await this.redis.hDel(this.hash, id);
@@ -53,14 +68,49 @@ class RedisDataHandler {
         }
     }
 
-    async set(id, newData) {
-        let data = await this.get(id);
-        data = Object.assign(data, newData);
+}
 
-        await this.redis.hSet(this.hash, id, JSON.stringify(data));
+class KeyedDataHandler {
+    constructor (redis) {
+        this.redis = redis;
+    }
+
+    async get(...keys) {
+        if (keys.length == 0) {
+            return null;
+        }
+        else if (keys.length == 1) {
+            const data = await this.redis.get(keys[0]);
+            
+            return JSON.parse(data);
+        }
+        else {
+            let allData = {};
+
+            for (const key of keys) {
+                const data = await this.redis.get(key);
+                
+                allData[key] = JSON.parse(data);
+            }
+
+            return allData;
+        }
+    }
+
+    async set(data) {
+        for (const [key, value] of Object.entries(data)) {
+            await this.redis.set(key, JSON.stringify(value));
+        }        
+    }
+
+    async delete(...keys) {
+        for (const key of keys) {
+            await this.redis.del(key);
+        }
     }
 }
 
 module.exports = {
-    RedisDataHandler: RedisDataHandler
+    HashDataHandler: HashDataHandler,
+    KeyedDataHandler: KeyedDataHandler
 }

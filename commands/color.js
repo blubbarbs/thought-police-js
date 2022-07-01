@@ -3,6 +3,12 @@ const hexRegex = /#[0-9A-Fa-f]{6}/;
 
 const ROLE_OFFSET = 7;
 
+async function isValidHexColor(interaction, arg) {
+    if (arg.match(hexRegex) == null) {
+        throw 'That is not a valid hex color. A valid hex color looks like this: "#A123CD".';
+    }
+}
+
 async function colorMember(member, hexColor) {
     await decolorMember(member);
     const colorRole = await makeColorRole(member.guild, hexColor);
@@ -43,17 +49,9 @@ async function makeColorRole(guild, hexColor) {
 async function execute(interaction, args) {
     const color = args['color'];
     const target = args['target'] != null ? args['target'] : interaction.member;
-    const match = color.match(hexRegex);
-
-    console.log(`Color: ${color} Target: ${target}`);
-
-    if (match != null) {
-        await colorMember(target, color);
-        await interaction.reply({ content: `Colored.`, ephemeral: true });
-    }
-    else {
-        await interaction.reply({ content: 'That is not a valid hex color. A valid hex color looks like this: "#A123CD"', ephemeral: true });
-    }
+    
+    await colorMember(target, color);
+    await interaction.reply({ content: `Colored.`, ephemeral: true });
 }
 
 module.exports = {
@@ -62,7 +60,8 @@ module.exports = {
         color: {
             type: 'string',
             description: "Hex color you want to change to.",
-            optional: false
+            optional: false,
+            check: isValidHexColor
         },
         target: {
             type: 'member',
