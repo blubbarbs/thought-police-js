@@ -1,6 +1,7 @@
 const userRegex = /<@!?([0-9]+)>/;
 const channelRegex = /<#([0-9]+)>/;
 const roleRegex = /<@&([0-9]+)>/;
+const gridCoordinatesRegex = /([0-9]+|[A-Za-z]+)([0-9]+|[A-Za-z]+)?/;
 
 const processors = {
     string: (interaction, argName) => interaction.options.getString(argName),
@@ -20,7 +21,9 @@ const processors = {
     number: (interaction, argName) => interaction.options.getNumber(argName),
     number_list: (interaction, argName) => processList(interaction, argName, parseNumber),
     boolean: (interaction, argName) => interaction.options.getBoolean(argName),
-    boolean_list: (interaction, argName) => processList(interaction, argName, parseBoolean)
+    boolean_list: (interaction, argName) => processList(interaction, argName, parseBoolean),
+    grid_coordinates: (interaction, argName) => parseGridCoordinates(interaction, interaction.options.getString(argName)),
+    grid_coordinates_list: (interaction, argName) => processList(interaction, argName, parseGridCoordinates)
 }
 
 async function parseMember(interaction, arg) {
@@ -137,6 +140,25 @@ async function parseBoolean(interaction, arg) {
     }
     else {
         throw `"${arg}" is not a proper boolean argument.`
+    }
+}
+
+async function parseGridCoordinates(interaction, arg) {
+    const match = arg.match(gridCoordinatesRegex);
+
+    if (match == null || match[2] == undefined) {
+        throw 'Those are not valid coordinates. Valid coordinates contain a letter and a number put together like "1a" or "a1".';
+    }
+    else {
+        const leftMatch = match[1];
+        const rightMatch = match[2];
+
+        const xStr = !isNaN(leftMatch) ? leftMatch : rightMatch;
+        const yStr = !isNaN(leftMatch) ? rightMatch.toLowerCase() : leftMatch.toLowerCase();
+        const x = +xStr;
+        const y = yStr.charCodeAt(0) - 97;
+
+        return [x, y];
     }
 }
 

@@ -29,17 +29,6 @@ class JingleHandler {
         this.currentConnection.subscribe(this.audioPlayer);
     }
 
-    async isAudioURL(jingleURL) {
-        try {
-            const audioStreamReq = await request(jingleURL);
-
-            return 'content-type' in audioStreamReq.headers && (audioStreamReq.headers['content-type'] == 'audio/mpeg' || audioStreamReq.headers['content-type'] == 'application/ogg');
-        } 
-        catch(e) {
-            return false;
-        }
-    }
-
     async playJingle(voiceChannel, jingleURL) {        
         if (this.voiceChannel != null && this.voiceChannel != voiceChannel) {
             this.disconnect();

@@ -25,9 +25,9 @@ function getCommandArgumentChoices(choices) {
     return choiceList;
 }
 
-function createOptionBuilder(name, arg) {
+function createOptionBuilder(arg) {
     return (optionBuilder => {
-        optionBuilder.setName(name);
+        optionBuilder.setName(arg.name);
         optionBuilder.setDescription(arg.description);
         
         if ('optional' in arg) {
@@ -43,137 +43,128 @@ function createOptionBuilder(name, arg) {
 }
 
 function buildCommandArguments(commandBuilder, args) {
-    if (args == null || args == undefined) {
+    if (args == null) {
         return;
     }
     
-    for (const [name, arg] of Object.entries(args)) {
+    for (const arg of Object.values(args)) {
         switch (arg?.type) {
             case 'string':
-                commandBuilder.addStringOption(createOptionBuilder(name, arg));   
+                commandBuilder.addStringOption(createOptionBuilder(arg));   
                 break;
             case 'int':
             case 'integer':
-                commandBuilder.addIntegerOption(createOptionBuilder(name, arg));           
+                commandBuilder.addIntegerOption(createOptionBuilder(arg));           
                 break;
             case 'bool':
             case 'boolean':
-                commandBuilder.addBooleanOption(createOptionBuilder(name, arg));           
+                commandBuilder.addBooleanOption(createOptionBuilder(arg));           
                 break;
             case 'number':
-                commandBuilder.addNumberOption(createOptionBuilder(name, arg));           
+                commandBuilder.addNumberOption(createOptionBuilder(arg));           
                 break;
             case 'user':
-                commandBuilder.addUserOption(createOptionBuilder(name, arg));           
+                commandBuilder.addUserOption(createOptionBuilder(arg));           
                 break;
             case 'member':
-                commandBuilder.addUserOption(createOptionBuilder(name, arg));           
+                commandBuilder.addUserOption(createOptionBuilder(arg));           
                 break;    
             case 'channel':
-                commandBuilder.addChannelOption(createOptionBuilder(name, arg));           
+                commandBuilder.addChannelOption(createOptionBuilder(arg));           
                 break;
             case 'role':
-                commandBuilder.addRoleOption(createOptionBuilder(name, arg));           
+                commandBuilder.addRoleOption(createOptionBuilder(arg));           
                 break;
             case 'mentionable':
-                commandBuilder.addMentionableOption(createOptionBuilder(name, arg));           
+                commandBuilder.addMentionableOption(createOptionBuilder(arg));           
                 break;
             case 'attachment':
-                commandBuilder.addAttachmentOption(createOptionBuilder(name, arg));           
+                commandBuilder.addAttachmentOption(createOptionBuilder(arg));           
                 break;
             default:
-                commandBuilder.addStringOption(createOptionBuilder(name, arg));           
+                commandBuilder.addStringOption(createOptionBuilder(arg));           
                 break; 
         }
     }
 }
 
-async function defaultSubcommandGroupExecute(interaction) {
-    await interaction.reply({ content: 'You need to specify a subcommand to run this command.', ephemeral: true });
+function readCommand(commandPath) {
+    let command = null;
+
+    if (commandPath.endsWith('.js')) {        
+        command = { name: path.basename(commandPath, '.js'), ...require(commandPath) };
+    }
+    else if (fs.existsSync(path.join(commandPath, '.js'))) {
+        command = { name: path.basename(commandPath), ...require(path.join(commandPath, '.js')), subcommands: {} };
+
+        for (const subcommandFileName of fs.readdirSync(commandPath)) {
+            const subcommandName = path.basename(subcommandFileName, '.js');
+            
+            if (subcommandFileName != '.js' && subcommandFileName.endsWith('.js')) {
+                command.subcommands[subcommandName] = readCommand(path.join(commandPath, subcommandFileName));
+            }            
+        }
+    }
+
+    if ('args' in command) {
+        for (const [name, arg] of Object.entries(command.args)) {
+            arg.name = name;
+        }
+    }
+
+    return command;
 }
 
 function readCommandFolder(commandsPath) {
-    const fileNames = fs.readdirSync(commandsPath);
-    const slashCommandBuilders = [];
-    const commands = new Collection();
-
-    for (const fileName of fileNames) {
-        const slashCommandBuilder = new SlashCommandBuilder();
-
-        if (fileName.endsWith('.js')) {
-            const command = require(path.join(commandsPath, fileName));
-            const commandName = fileName.substring(0, fileName.length - 3);
-
-            slashCommandBuilder.setName(commandName);
-            slashCommandBuilder.setDescription(command.description);
-            slashCommandBuilder.setDMPermission(command?.permitDM);
-            buildCommandArguments(slashCommandBuilder, command?.args);
-
-            slashCommandBuilders.push(slashCommandBuilder);
-            commands.set(commandName, command);
-        }
-        else if (!fileName.includes('.') && fs.existsSync(path.join(commandsPath, fileName, '.js'))) {
-            const commandsPath2 = path.join(commandsPath, fileName);
-            const fileNames2 = fs.readdirSync(commandsPath2);
+    const commands = {};
     
-            for (const fileName2 of fileNames2) {
-                if (fileName2 == '.js') {
-                    const data = require(path.join(commandsPath2, fileName2));
+    for (const commandFileName of fs.readdirSync(commandsPath)) {
+        const commandName = path.basename(commandFileName, '.js');
 
-                    slashCommandBuilder.setName(fileName);
-                    slashCommandBuilder.setDescription(data.description);
-
-                    slashCommandBuilders.push(slashCommandBuilder);
-                    commands.set(fileName, { execute: defaultSubcommandGroupExecute, ...data });
-                }
-                else if (fileName2.endsWith('.js')) {
-                    const subcommand = require(path.join(commandsPath2, fileName2));
-                    const subcommandName = fileName2.substring(0, fileName2.length - 3);
-                    const slashsubCommandBuilder = new SlashCommandSubcommandBuilder();                    
-
-                    slashsubCommandBuilder.setName(subcommandName);
-                    slashsubCommandBuilder.setDescription(subcommand.description);
-                    buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
-                    
-                    slashCommandBuilder.addSubcommand(slashsubCommandBuilder);
-                    commands.set(fileName + '.' + subcommandName, subcommand);
-                }
-                else if (!fileName2.includes('.') && fs.existsSync(path.join(commandsPath2, fileName2, '.js'))) {
-                    const commandsPath3 = path.join(commandsPath2, fileName2)
-                    const fileNames3 = fs.readdirSync(commandsPath3);
-                    const slashsubCommandGroupBuilder = new SlashCommandSubcommandGroupBuilder();
-
-                    for (const fileName3 of fileNames3) {
-                        if (fileName3 == '.js') {
-                            const data = require(path.join(commandsPath3, fileName3));
-
-                            slashsubCommandGroupBuilder.setName(fileName2);
-                            slashsubCommandGroupBuilder.setDescription(data.description);
-
-                            slashCommandBuilder.addSubcommandGroup(slashsubCommandGroupBuilder);
-                        }
-                        else if (fileName3.endsWith('.js')) {
-                            const subcommand = require(path.join(commandsPath3, fileName3));
-                            const subcommandName = fileName3.substring(0, fileName3.length - 3);
-                            const slashsubCommandBuilder = new SlashCommandSubcommandBuilder();
-
-                            slashsubCommandBuilder.setName(subcommandName);
-                            slashsubCommandBuilder.setDescription(subcommand.description);
-                            buildCommandArguments(slashsubCommandBuilder, subcommand?.args);
-                            
-                            slashsubCommandGroupBuilder.addSubcommand(slashsubCommandBuilder);
-                            commands.set(fileName + '.' + fileName2 + '.' + subcommandName, subcommand);
-                        }
-                    }
-                }
-            }
-        }    
+        commands[commandName] = readCommand(path.join(commandsPath, commandFileName));
     }
 
-    return {
-        commands: commands,
-        builders: slashCommandBuilders
-    };
+    return commands;
+}
+
+function buildSlashCommand(command) {
+    const slashCommandBuilder = new SlashCommandBuilder();
+
+    slashCommandBuilder.setName(command.name);
+    slashCommandBuilder.setDescription(command.description);
+    slashCommandBuilder.setDMPermission(command?.permitDM);
+    buildCommandArguments(slashCommandBuilder, command?.args);
+
+    if ('subcommands' in command) {
+        for (const subcommand of Object.values(command.subcommands)) {
+            if ('subcommands' in subcommand) {
+                const subcommandGroupBuilder = new SlashCommandSubcommandGroupBuilder();
+
+                for (const subsubcommand of subcommand.subcommands) {
+                    const subsubcommandBuilder = new SlashCommandSubcommandBuilder();
+
+                    subsubcommandBuilder.setName(subsubcommand.name);
+                    subsubcommandBuilder.setDescription(command.description);
+                    buildCommandArguments(subsubcommandBuilder, subcommand?.args);
+                    
+                    subcommandGroupBuilder.addSubcommand(subsubcommandBuilder);
+                }
+
+                slashCommandBuilder.addSubcommandGroup(subcommandGroupBuilder);
+            }
+            else {
+                const subcommandBuilder = new SlashCommandSubcommandBuilder();
+
+                subcommandBuilder.setName(subcommand.name);
+                subcommandBuilder.setDescription(command.description);
+                buildCommandArguments(subcommandBuilder, subcommand?.args);
+
+                slashCommandBuilder.addSubcommand(subcommandBuilder);
+            }
+        }
+    }
+
+    return slashCommandBuilder;
 }
 
 async function onInteract(interaction) {
@@ -182,11 +173,8 @@ async function onInteract(interaction) {
     }
 
     try {
-        const commands = interaction.client.commandHandler.commands;
-        let commandName = interaction.commandName;
-        commandName += interaction.options._group != null ? `.${interaction.options._group}` : '';
-        commandName += interaction.options._subcommand != null ? `.${interaction.options._subcommand}` : '';
-        const command = commands.get(commandName);
+        const commandHandler = interaction.client.commandHandler;
+        const command = commandHandler.getCommand(interaction.commandName, interaction.options._group, interaction.options._subcommand);
     
         if ('permissions' in command && !interaction.member.permissions.has(command.permissions)) {
             await interaction.reply({ content: 'You do not have permission to use this command. ', ephemeral: true });
@@ -207,7 +195,9 @@ async function onInteract(interaction) {
                     const argChecks = Array.isArray(arg.check) ? arg.check : [arg.check];
                     
                     for (const check of argChecks) {
-                        await check(interaction, args[name]);
+                        if (args[name] != null) {
+                            await check(interaction, args[name]);
+                        }
                     }
                 }
             }
@@ -215,7 +205,7 @@ async function onInteract(interaction) {
 
         if ('check' in command) {
             const commandChecks = Array.isArray(command.check) ? command.check : [command.check];
-    
+                    
             for (const check of commandChecks) {
                 await check(interaction, args);       
             }
@@ -237,20 +227,36 @@ async function onInteract(interaction) {
 class CommandHandler {
     constructor(client) {
         this.client = client;
-        this.commands = new Collection();
+    }
+
+    getCommand(commandName, subcommandGroupName, subcommandName) {
+        let command = this.commands[commandName];
+
+        if (subcommandGroupName != null) {
+            command = command.subcommands[subcommandGroupName];
+        }
+
+        if (subcommandName != null) {
+            command = command.subcommands[subcommandName];
+        }
+
+        return command;
     }
 
     reloadCommands(commandsPath) {
-        const commandData = readCommandFolder(commandsPath);    
-        
-        restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: commandData.builders })
+        this.commands = readCommandFolder(commandsPath);
+        const slashCommandBuilders = [];
+
+        for (const [name, command] of Object.entries(this.commands)) {
+            slashCommandBuilders.push(buildSlashCommand(command));
+        }
+
+        restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: slashCommandBuilders })
         .then(() =>  {
             console.log('Successfully registered commands.');
             this.client.on('interactionCreate', onInteract);
         })
         .catch(console.error);
-
-        this.commands = commandData.commands;
     }
 }
 

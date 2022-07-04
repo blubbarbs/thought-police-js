@@ -54,7 +54,10 @@ class HashDataHandler {
     }
 
     async delete(id, ...keys) {
-        if (keys.length == 0) {
+        if (id == null) {
+            await this.redis.del(this.hash);
+        }
+        else if (keys.length == 0) {
             await this.redis.hDel(this.hash, id);
         }
         else { 
@@ -67,7 +70,6 @@ class HashDataHandler {
             await this.redis.hSet(this.hash, id, JSON.stringify(data));
         }
     }
-
 }
 
 class KeyedDataHandler {

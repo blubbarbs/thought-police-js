@@ -8,12 +8,15 @@ const { ScoreboardHandler } = require('./handlers/scoreboard_handler.js');
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
+const { TreasureHunt } = require('./games/treasure_hunt.js');
+
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MEMBERS] });
 const redis = createClient({ url: process.env.REDIS_URL });
 
 client.redis = redis;
 client.roleDataHandler = new HashDataHandler(redis, 'roleinfo.');
 client.userDataHandler = new HashDataHandler(redis, 'userinfo.');
+client.treasureHunt = new TreasureHunt(client);
 client.dataHandler = new KeyedDataHandler(redis);
 client.commandHandler = new CommandHandler(client);
 client.scoreboardHandler = new ScoreboardHandler(client);
@@ -26,12 +29,30 @@ client.on('ready', async () => {
     client.guild = await client.guilds.fetch('209496826204782592');
     client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
     client.scoreboardChannel = await client.guild.channels.fetch('987990655601102899');
+
+    await client.treasureHunt.loadGame();
 });
 
 client.on('shardDisconnect', async () => {
     await client.redis.disconnect();
     clearInterval(client.redisHeartbeat);
 }); 
+
+client.on('guildMemberRemove', async (member) => {
+    const roles = Array.from(member.roles.cache.keys());
+    const timesLeft = +(await client.userDataHandler.get(member.id, 'timesLeft'));
+
+    await client.userDataHandler.set(member.id, { roles: roles, timesLeft: timesLeft });
+
+});
+
+client.on('guildMemberAdd', async (member) => {
+    const previousRoles = client.userDataHandler.get(member.id, 'roles');
+
+    if (previousRoles != null) {
+        await member.roles.add(previousRoles);
+    }
+});
 
 client.commandHandler.reloadCommands(path.join(__dirname, 'commands'));
 client.login(process.env.TOKEN);

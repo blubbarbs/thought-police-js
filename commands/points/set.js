@@ -24,7 +24,7 @@ module.exports = {
             description: 'The person whose points you want to set.'
         },
         points: {
-            type: 'int',
+            type: 'integer',
             description: 'New point amount.'
         }
     },
