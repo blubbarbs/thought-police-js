@@ -4,7 +4,7 @@ async function execute(interaction, args) {
     const target = args['target'];
     const treasureHunt = interaction.client.treasureHunt;
 
-    treasureHunt.gridgame.getPlayerData(target.id).lastDigTime = null;
+    treasureHunt.setPlayerData(interaction.member.id, 'lastDigTime', null);
     await interaction.reply({ content: `Successfully refreshed the dig cycle for ${target}.`, ephemeral: true });
 }
 

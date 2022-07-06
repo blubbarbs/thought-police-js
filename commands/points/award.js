@@ -4,7 +4,7 @@ async function awardPoints(client, member, deltaPoints) {
     let points = +(await client.userDataHandler.get(member.id, 'points'));
     points = points + deltaPoints;
 
-    await client.userDataHandler.set(member.id, { points: points });
+    await client.userDataHandler.set(member.id, 'points', points);
 }
 
 async function execute(interaction, args) {

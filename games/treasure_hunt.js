@@ -1,10 +1,10 @@
-const { GridGame } = require("./util/gridgame.js");
+const { GridGame } = require("./util/game.js");
 
 async function isValidSpace(interaction, arg) {
     const treasureHunt = interaction.client.treasureHunt;
     const [x, y] = arg;
 
-    if (x >= treasureHunt.gridgame.length || y >= treasureHunt.gridgame.width) {
+    if (x >= treasureHunt.grid.length || y >= treasureHunt.grid.width) {
         throw 'That space is outside the game area.';
     }
 }
@@ -14,16 +14,16 @@ async function isFreeSpace(interaction, arg) {
 
     const treasureHunt = interaction.client.treasureHunt;
     const [x, y] = arg;
-    const tileData = treasureHunt.gridgame.getTileData(x, y);
+    const isDug = treasureHunt.getTileData(x, y, 'isDug');
 
-    if (tileData?.isDug) {
+    if (isDug) {
         throw 'That space has already been dug up.';
     }
 }
 
 async function hasNotDug(interaction, args) {
     const treasureHunt = interaction.client.treasureHunt;
-    const lastDigTime = treasureHunt.gridgame.getPlayerData(interaction.member.id)?.lastDigTime;
+    const lastDigTime = treasureHunt.getPlayerData(interaction.member.id, 'lastDigTime');
 
     if (lastDigTime != null) {
         const msDifference = Date.now() - lastDigTime;
@@ -37,86 +37,60 @@ async function hasNotDug(interaction, args) {
     }
 }
 
-class TreasureHuntGame {
+class TreasureHuntGame extends GridGame {
     constructor (client) {
-        this.client = client;
+        super(client, 'treasure_hunt', 12, 12);
     }
 
-    getBoardEmbed() {
-        const gridString = this.gridgame.toString();
-        
+    getBoardEmbed() {        
         const embed = {
             color: '#ebf2a0',
             title: 'Treasure Hunt!',
             fields: [
                 {
-                    name: 'Points in Treasure Chest',
-                    value: '' + this.gridgame.data.treasureAmount,
+                    name: 'Treasure',
+                    value: `${this.getData('treasure')} points`,
                     inline: false
                 }
             ],
-            description: gridString
+            description: this.grid.toString()
         }
 
         return embed;
     }
 
-    async startNewGame() {
-        this.gridgame = new GridGame(12, 12);
+    async newGame() {
+        await super.newGame();
 
-        const [treasureX, treasureY] = this.gridgame.randomTile();
-        const treasureAmount = Math.ceil((Math.random() * 20) + 15);
-        this.gridgame.getTileData(treasureX, treasureY).treasure = treasureAmount;
-        this.gridgame.data.treasureAmount = treasureAmount;
-
-        console.log(this.gridgame.grid);
-
-        console.log(`Treasure X: ${treasureX}, Treasure Y: ${treasureY} Treasure: ${treasureAmount}`);
-
-        await this.saveGame();
-    }
-
-    async loadGame() {
-        const loadedGame = await this.client.dataHandler.get('treasure_hunt');
-
-        if (loadedGame != null) {
-            this.gridgame = GridGame.fromObject(loadedGame);
+        const [treasureX, treasureY] = this.grid.randomTile();
+        const treasure = Math.ceil((Math.random() * 20) + 15);
         
-            await this.saveGame();
-        }
-        else {
-            await this.startNewGame();
-        }
+        this.setTileData(treasureX, treasureY, 'treasure', treasure);
+        this.setData('treasure', treasure);
+        this.setData('treasure_loc', `${treasureX}, ${treasureY}`);
     }
     
-    async saveGame() {
-        await this.client.dataHandler.set({ treasure_hunt: this.gridgame });
-    }
-
     async dig(id, x, y) { 
-        const tileData = this.gridgame.getTileData(x, y);
+        const treasure = this.getTileData(x, y, 'treasure');
 
-        this.gridgame.setTileData(x, y, { display: '✖', isDug: true });
-        this.gridgame.getPlayerData(id).lastDigTime = Date.now();
+        this.setTileDisplay(x, y, '✖');
+        this.setTileData(x, y, 'isDug', true);
+        this.setPlayerData(id, 'lastDigTime', Date.now());
 
-        if ('treasure' in tileData) {
+        if (treasure != null) {
             const userDataHandler = this.client.userDataHandler;
             const scoreboardHandler = this.client.scoreboardHandler;
             const currentPoints = await userDataHandler.get(id, 'points');
 
-            console.log(`Found ${currentPoints} ${tileData.treasure}`);
-
-            await userDataHandler.set(id, { points: currentPoints + tileData.treasure });
+            await userDataHandler.set(id, 'points', currentPoints + treasure);
             await scoreboardHandler.updateChannel();
-            await this.startNewGame();
+            await this.newGame();
         }
-        else {
-            await this.saveGame();
-        }
-        
-        return tileData?.treasure;
-    }
 
+        await this.saveGame();
+        
+        return treasure;
+    }
 }
 
 module.exports = {

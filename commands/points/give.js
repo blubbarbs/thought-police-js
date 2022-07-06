@@ -7,7 +7,7 @@ async function execute(interaction, args) {
     let points = +(await client.userDataHandler.get(target.id, 'points'));
     points = points + deltaPoints;
 
-    await client.userDataHandler.set(target.id, { points: points });
+    await client.userDataHandler.set(target.id, 'points', points);
     await client.scoreboardHandler.updateChannel();    
 
     if (deltaPoints < 0) {

@@ -5,7 +5,7 @@ async function execute(interaction, args) {
     const target = args['target'] == null ? interaction.member : args['target'];
     const newPoints = args['points'];
 
-    await client.userDataHandler.set(target.id, { points: newPoints });
+    await client.userDataHandler.set(target.id, 'points', newPoints);
     await client.scoreboardHandler.updateChannel();
 
     if (target == interaction.member) {
@@ -14,6 +14,7 @@ async function execute(interaction, args) {
     else {
         await interaction.reply({ content: `Set ${target.displayName}'s points to ${newPoints}.`, ephemeral: true });
     }
+
 }
 
 module.exports = {

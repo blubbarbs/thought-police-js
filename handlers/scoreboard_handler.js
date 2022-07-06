@@ -5,6 +5,7 @@ class ScoreboardHandler {
 
     async getLeaderboard(end, start) {
         const allData = await this.client.userDataHandler.get();
+
         const scores = {};
 
         for (const [id, data] of Object.entries(allData)) {

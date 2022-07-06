@@ -11,7 +11,7 @@ async function execute(interaction, args) {
     }
     catch (e) {
         console.error(e);
-        await interaction.reply(`ERROR: ${e}`);
+        await interaction.reply({ content: `ERROR: ${e}`, ephemeral: true });
     }
 }
 

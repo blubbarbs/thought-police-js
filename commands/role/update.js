@@ -6,7 +6,7 @@ async function execute(interaction, args) {
     
     delete args['role'];
 
-    await client.roleDataHandler.set(role.id, args);
+    await client.roleDataHandler.sets(role.id, args);
 
     await interaction.reply({ content: `Updated information for ${role.name}`, ephemeral: true });
 }

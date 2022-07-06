@@ -3,7 +3,8 @@ const { Permissions } = require('discord.js');
 async function execute(interaction, args) {
     const treasureHunt = interaction.client.treasureHunt;
 
-    await treasureHunt.startNewGame();
+    await treasureHunt.newGame();
+    await treasureHunt.saveGame();
     await interaction.reply({ content: `Successfully started a new game.`, ephemeral: true });
 }
 
