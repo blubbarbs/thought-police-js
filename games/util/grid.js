@@ -31,10 +31,7 @@ const letterEmoji = {
 const gridCoordinatesRegex = /([0-9]+|[A-Za-z]+)([0-9]+|[A-Za-z]+)?/;
 
 function toAlphanumeric(x, y) {
-    const yCharCode = ('' + y).charCodeAt(0);
-    const yAlpha = String.fromCharCode(yCharCode + 97);
-
-    return `${yAlpha}${x}`;
+    return `${String.fromCharCode(y + 65)}${x}`;
 }
 
 function toCoordinates(alphanumeric) {
