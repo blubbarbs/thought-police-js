@@ -5,6 +5,7 @@ async function execute(interaction, args) {
     const treasureHunt = interaction.client.treasureHunt;
 
     treasureHunt.setPlayerData(interaction.member.id, 'last_dig_time', null);
+    await treasureHunt.saveGame();
     await interaction.reply({ content: `Successfully refreshed the dig cycle for ${target}.`, ephemeral: true });
 }
 
