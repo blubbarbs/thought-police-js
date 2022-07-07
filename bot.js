@@ -4,7 +4,7 @@ const path = require('node:path');
 const { CommandHandler }  = require('./handlers/command_handler.js');
 const { NamespaceDataHandler, DataHandler } = require('./handlers/redis_data_handler.js');
 const { JingleHandler } = require('./handlers/jingle_handler.js');
-const { ScoreboardHandler } = require('./handlers/scoreboard_handler.js');
+const { PointsHandler } = require('./handlers/points_handler.js');
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
@@ -19,7 +19,7 @@ client.userDataHandler = new NamespaceDataHandler(redis, 'user_info');
 client.treasureHunt = new TreasureHunt(client);
 client.dataHandler = new DataHandler(redis);
 client.commandHandler = new CommandHandler(client);
-client.scoreboardHandler = new ScoreboardHandler(client);
+client.pointsHandler = new PointsHandler(client);
 client.jingleHandler = new JingleHandler();
 
 client.on('ready', async () => {
@@ -30,8 +30,7 @@ client.on('ready', async () => {
     client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
     client.scoreboardChannel = await client.guild.channels.fetch('987990655601102899');
 
-    await client.treasureHunt.newGame();
-    await client.treasureHunt.saveGame();
+    await client.treasureHunt.loadGame();
 });
 
 client.on('shardDisconnect', async () => {
@@ -43,7 +42,7 @@ client.on('guildMemberRemove', async (member) => {
     const roles = Array.from(member.roles.cache.keys());
     const timesLeft = +(await client.userDataHandler.get(member.id, 'timesLeft'));
 
-    await client.userDataHandler.sets(member.id, { roles: roles, 'times_left': timesLeft + 1});
+    await client.userDataHandler.sets(member.id, { roles: roles, 'times_left': timesLeft + 1 });
 
 });
 

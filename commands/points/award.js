@@ -1,14 +1,7 @@
 const { Permissions } = require('discord.js');
 
-async function awardPoints(client, member, deltaPoints) {
-    let points = +(await client.userDataHandler.get(member.id, 'points'));
-    points = points + deltaPoints;
-
-    await client.userDataHandler.set(member.id, 'points', points);
-}
-
 async function execute(interaction, args) {
-    const client = interaction.client;
+    const pointsHandler = interaction.client.pointsHandler;
     const points = args['points'];
     const first = args['first'];
     const second = args['second'];
@@ -17,19 +10,19 @@ async function execute(interaction, args) {
     await interaction.deferReply({ ephemeral: true });
 
     for (const member of first) {
-        await awardPoints(client, member, points);
+        await pointsHandler.addPoints(member.id, points, false);
     }
 
     for (const member of second) {
-        await awardPoints(client, member, Math.round(points * .6));
+        await pointsHandler.addPoints(member.id, Math.round(points * .6), false);
     }
 
     for (const member of third) {
-        await awardPoints(client, member, Math.round(points * .3));
+        await pointsHandler.addPoints(member.id, Math.round(points * .3), false);
     }
 
+    await pointsHandler.updateLeaderboard();
     await interaction.editReply('Gave points to all listed members.');
-    await client.scoreboardHandler.updateChannel();    
 }
 
 module.exports = {

@@ -1,12 +1,11 @@
 const { Permissions } = require('discord.js');
 
 async function execute(interaction, args) {
-    const client = interaction.client;
+    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] == null ? interaction.member : args['target'];
     const newPoints = args['points'];
 
-    await client.userDataHandler.set(target.id, 'points', newPoints);
-    await client.scoreboardHandler.updateChannel();
+    await pointsHandler.setPoints(target.id, newPoints);
 
     if (target == interaction.member) {
         await interaction.reply({ content: `Set your points to ${newPoints}.`, ephemeral: true });

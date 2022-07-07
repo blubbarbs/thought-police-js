@@ -1,6 +1,26 @@
-class ScoreboardHandler {
+class PointsHandler {
     constructor(client) {
         this.client = client;
+    }
+
+    async getPoints(id) {
+        const points = await this.client.userDataHandler.get(id, 'points');
+
+        return +points;
+    }
+
+    async setPoints(id, points, updateLeaderboard) {
+        await this.client.userDataHandler.set(id, 'points', points);
+
+        if (updateLeaderboard == null || updateLeaderboard == true) {
+            await this.updateLeaderboard();
+        }
+    }
+
+    async addPoints(id, deltaPoints, updateLeaderboard) {
+        const currentPoints = await this.getPoints(id);
+
+        await this.setPoints(id, currentPoints + deltaPoints, updateLeaderboard);
     }
 
     async getLeaderboard(end, start) {
@@ -40,7 +60,7 @@ class ScoreboardHandler {
         }
     }
 
-    async updateChannel() {
+    async updateLeaderboard() {
         const messages = await this.client.scoreboardChannel.messages.fetch({ limit: 1 });
         const leaderboardText = await this.getLeaderboardText();
         let leaderboardMessage = null;
@@ -57,5 +77,5 @@ class ScoreboardHandler {
 }
 
 module.exports = {
-    ScoreboardHandler: ScoreboardHandler
+    PointsHandler: PointsHandler
 }

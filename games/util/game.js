@@ -11,6 +11,16 @@ class Game {
         this.playerData = new Collection();
     }
 
+    randomInt(max, min) {
+        min = min != null ? min : 0;
+
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    roll(probability) {
+        return Math.random() < probability;
+    }
+
     getData(key) {
         return this.data.get(key);
     }
@@ -68,8 +78,16 @@ class GridGame extends Game {
         this.grid = new Grid(length, width);
     }
 
+    resetTile(x, y) {
+        this.grid.delete(x, y);
+    }
+
+    resetTileDisplay(x, y) {
+        this.grid.delete(x, y, 'display');
+    }
+
     getTileDisplay(x, y) {
-        return this.grid.get(x, y, 'display');
+        return this.grid.get(x, y, 'display') || this.grid.defaultTileDisplay;
     }
 
     setTileDisplay(x, y, display) {
@@ -82,6 +100,30 @@ class GridGame extends Game {
 
     setTileData(x, y, key, value) {
         this.grid.set(x, y, key, value);
+    }
+
+    randomTile(amount, predicate) {
+        amount = amount != null ? amount : 1;
+        const tilePool = [];
+
+        for (let y = 0; y < this.grid.width; y++) {
+            for (let x = 0; x < this.grid.length; x++) {
+                if (predicate == null || predicate(x, y, this.grid.get(x, y))) {                    
+                    tilePool.push([x, y]);
+                }                
+            }
+        }
+        
+        const tiles = [];
+
+        for (let i = 0; i < amount; i++) {
+            const randomIndex = this.randomInt(tilePool.length - 1);
+            const tile = tilePool.splice(randomIndex, 1);
+
+            tiles.push(tile[0]);
+        }
+
+        return tiles.length == 1 ? tiles[0] : tiles;
     }
 
     async newGame() {

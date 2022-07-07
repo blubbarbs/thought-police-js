@@ -1,7 +1,7 @@
 async function execute(interaction, args) {
-    const client = interaction.client;
+    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] == null ? interaction.member : args['target'];
-    let points = +(await client.userDataHandler.get(target.id, 'points'));
+    const points = await pointsHandler.getPoints(interaction.member.id);
 
     if (points == 0) {
         if (target == interaction.member) {

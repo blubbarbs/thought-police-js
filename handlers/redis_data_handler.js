@@ -171,7 +171,7 @@ class HashDataHandler {
             arrayedData.push(JSON.stringify(v));
         }
 
-        await this.redis.hSet(this.hash, ...arrayedData);
+        await this.redis.hSet(this.hash, arrayedData);
     }
 
     async delete(...keys) {
@@ -230,7 +230,7 @@ class DataHandler {
             arrayedData.push(JSON.stringify(v));
         }        
 
-        await this.redis.mSet(...arrayedData);
+        await this.redis.mSet(arrayedData);
     }
 
     async set(key, value) {

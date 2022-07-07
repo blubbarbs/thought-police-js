@@ -1,3 +1,5 @@
+const { toCoordinates } = require("../games/util/grid");
+
 const userRegex = /<@!?([0-9]+)>/;
 const channelRegex = /<#([0-9]+)>/;
 const roleRegex = /<@&([0-9]+)>/;
@@ -144,21 +146,19 @@ async function parseBoolean(interaction, arg) {
 }
 
 async function parseGridCoordinates(interaction, arg) {
-    const match = arg.match(gridCoordinatesRegex);
+    const coords = toCoordinates(arg);
 
-    if (match == null || match[2] == undefined) {
-        throw 'Those are not valid coordinates. Valid coordinates contain a letter and a number put together like "1a" or "a1".';
+    if (coords == null) {
+        throw 'Those are not valid coordinates. Valid coordinates look like "A1" or "1A".';
+    }
+    else if (coords[0] == null) {
+        throw 'You must input a number for the coordinates to be valid.'
+    }
+    else if (coords[1] == null) {
+        throw 'You must input a letter for the coordinates to be valid.'
     }
     else {
-        const leftMatch = match[1];
-        const rightMatch = match[2];
-
-        const xStr = !isNaN(leftMatch) ? leftMatch : rightMatch;
-        const yStr = !isNaN(leftMatch) ? rightMatch.toLowerCase() : leftMatch.toLowerCase();
-        const x = +xStr;
-        const y = yStr.charCodeAt(0) - 97;
-
-        return [x, y];
+        return coords;
     }
 }
 

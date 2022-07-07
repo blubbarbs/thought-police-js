@@ -28,6 +28,46 @@ const letterEmoji = {
     11: '🇱'
 }
 
+const gridCoordinatesRegex = /([0-9]+|[A-Za-z]+)([0-9]+|[A-Za-z]+)?/;
+
+function toAlphanumeric(x, y) {
+    const yCharCode = ('' + y).charCodeAt(0);
+    const yAlpha = String.fromCharCode(yCharCode + 97);
+
+    return `${yAlpha}${x}`;
+}
+
+function toCoordinates(alphanumeric) {
+    const match = alphanumeric.match(gridCoordinatesRegex);
+
+    if (match == null) {
+        return null;
+    }
+    else if (match[2] == undefined) {
+        const leftMatch = match[1];
+
+        if (isNaN(leftMatch)) {
+            const y = leftMatch.toLowerCase().charCodeAt(0) - 97;
+
+            return [null, y];
+        }
+        else {
+            return [+leftMatch, null];
+        }
+    }
+    else {
+        const leftMatch = match[1];
+        const rightMatch = match[2];
+
+        const xStr = !isNaN(leftMatch) ? leftMatch : rightMatch;
+        const yStr = !isNaN(leftMatch) ? rightMatch.toLowerCase() : leftMatch.toLowerCase();
+        const x = +xStr;
+        const y = yStr.charCodeAt(0) - 97;
+
+        return [x, y];
+    }
+}
+
 class Grid {
     constructor(length, width, defaultTileDisplay) {
         this.grid = [];
@@ -39,27 +79,11 @@ class Grid {
             const row = [];
 
             for (let x = 0; x < length; x++) {
-                row.push({ display: this.defaultTileDisplay });
+                row.push({});
             }
 
             this.grid.push(row);
         }
-    }
-
-    randomTile(predicate) {
-        const tiles = [];
-
-        for (let y = 0; y < this.width; y++) {
-            for (let x = 0; x < this.length; x++) {
-                if (predicate == null || predicate(x, y)) {
-                    tiles.push([x, y]);
-                }                
-            }
-        }
-        
-        const randomIndex = Math.floor(Math.random() * tiles.length);
-
-        return tiles[randomIndex];
     }
 
     get(x, y, key) {
@@ -71,10 +95,18 @@ class Grid {
     }
 
     set(x, y, key, value) {
-        const data = {};
-        data[key] = value;
+        this.grid[y][x][key] = value;
+    }
 
-        this.sets(x, y, data);
+    delete(x, y, key) {
+        if (key == null) {
+            delete this.grid.grid[y][x];
+
+            this.grid[y][x] = {};
+        }
+        else {
+            delete this.grid.grid[y][x][key];
+        }
     }
 
     clear() {
@@ -82,7 +114,7 @@ class Grid {
             for (let x = 0; x < this.length; x++) {
                 delete this.grid[y][x];
                 
-                this.grid[y][x] = { display: this.defaultTileDisplay };
+                this.grid[y][x] = {};
             }
         }
     }
@@ -101,7 +133,9 @@ class Grid {
             row.push(letterEmoji[y]);
 
             for (let x = 0; x < this.length; x++) {
-                row.push(this.grid[y][x].display);
+                const display = 'display' in this.grid[y][x] ? this.grid[y][x].display : this.defaultTileDisplay;
+                
+                row.push(display);
             }
 
             displayGrid.push(row);
@@ -123,5 +157,7 @@ class Grid {
 }
 
 module.exports = {
-    Grid: Grid
+    Grid: Grid,
+    toAlphanumeric: toAlphanumeric,
+    toCoordinates: toCoordinates
 }

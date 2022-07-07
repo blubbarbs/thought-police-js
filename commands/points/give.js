@@ -1,14 +1,11 @@
 const { Permissions } = require('discord.js');
 
 async function execute(interaction, args) {
-    const client = interaction.client;
+    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] == null ? interaction.member : args['target'];
     const deltaPoints = args['points'];
-    let points = +(await client.userDataHandler.get(target.id, 'points'));
-    points = points + deltaPoints;
 
-    await client.userDataHandler.set(target.id, 'points', points);
-    await client.scoreboardHandler.updateChannel();    
+    await pointsHandler.addPoints(interaction.member, deltaPoints);
 
     if (deltaPoints < 0) {
         if (target == interaction.member) {
