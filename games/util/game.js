@@ -57,8 +57,7 @@ class Game {
             playerEntries.push([key, Array.from(data.entries())]);
         }
 
-        await this.dataHandler.set('data', dataEntries);
-        await this.dataHandler.set('player_data', playerEntries);
+        await this.dataHandler.sets( { data: dataEntries, 'player_data': playerEntries });
     }
 }
 

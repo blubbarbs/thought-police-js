@@ -39,7 +39,7 @@ async function hasNotDug(interaction, args) {
 
 class TreasureHuntGame extends GridGame {
     constructor (client) {
-        super(client, 'treasure_hunt', 12, 12);
+        super(client, 'treasure_hunt', 8, 8);
     }
 
     getBoardEmbed() {        

@@ -6,103 +6,121 @@ class NamespaceDataHandler {
 
     async getKeys() {
         const keys = [];
+        const offset = this.namespace.length + 1;
 
-        for await (const key of this.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*`})) {
-            keys.push(key);
+        for await (const key of this.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*` })) {
+            keys.push(key.substring(offset));
         }
 
         return keys;
     }
 
     async get(id, ...keys) {
-        const hash = `${this.namespace}:${id}`;
-
-        if (id != null) {
+        if (id == null) {
             if (keys.length == 0) {
-                const data = await this.redis.hGetAll(hash);
+                const allKeys = await this.getKeys();
+                const data = await this.get(id, allKeys);
 
-                for (const [k, v] of Object.entries(data)) {
-                    data[k] = JSON.parse(v);
-                }
-
-                return Object.keys(data).length == 0 ? null : data;
+                return data;
             }
             else if (keys.length == 1) {
-                const data = await this.redis.hGet(hash, keys[0]);
-
-                return JSON.parse(data);
-            }
-            else {            
-                const keyedData = {};
-
-                for (const key of keys) {
-                    const data = await this.redis.hGet(hash, key);
-                    
-                    keyedData[key] = JSON.parse(data);
-                }
-                
-                return keyedData;
-            }    
-        }
-        else {
-            const namespacedKeys = await this.getKeys();
-            const promises = [];
-
-            for (const namespacedKey of namespacedKeys) {
-                promises.push(this.redis.hGetAll(namespacedKey));
-            }
-
-            const allData = {};
-            const keyOffset = this.namespace.length + 1;
-            const retrievedData = await Promise.all(promises);
-
-            for (let i = 0; i < promises.length; i++) {
-                const namespacedKey = namespacedKeys[i];
-                const data = retrievedData[i];
+                const hash = `${this.namespace}:${keys[0]}`;
+                const data = await this.redis.hGetAll(hash)
 
                 for (const [k, v] of Object.entries(data)) {
                     data[k] = JSON.parse(v);
                 }
 
-                allData[namespacedKey.substring(keyOffset)] = data;
+                return data;
             }
+            else {
+                const allData = {};
+                const promises = keys.map((key) => this.redis.hGetAll(`${this.namespace}:${key}`));
+                const data = await Promise.all(promises);
+                
+                for (const d of data) {
+                    if (Object.keys(d).length == 0) {
+                        d[k] = null;
+                    }
+                    else {
+                        for (const [k, v] of Object.entries(d)) {
+                            d[k] = JSON.parse(v);
+                        }    
+                    }
+                }
 
-            return allData;
+                data.forEach((d, i) => data[i] = Object.entries(d) != null ? JSON.parse(d) : null);
+                keys.forEach((k, i) => allData[k] = data[i]);
+    
+                return allData;
+            }
         }
-    }
+        else {
+            if (keys.length == 0) {
+                const allKeys = await this.getKeys();
+                const data = await this.get(id, allKeys);
 
-    async sets(id, data) {
-        const hash = `${this.namespace}:${id}`;
+                return data;
+            }
+            else if (keys.length == 1) {
+                const hash = `${this.namespace}:${keys[0]}`;
+                const data = await this.redis.hGet(hash, id);
 
-        for (const [k, v] of Object.entries(data)) {
-            await this.redis.hSet(hash, k, JSON.stringify(v));
+                return JSON.parse(data);
+            }        
+            else {
+                const allData = {};
+                const promises = keys.map((key) => this.redis.hGet(`${this.namespace}:${key}`, id));
+                const data = await Promise.all(promises);
+
+                data.forEach((d, i) => data[i] = JSON.parse(d));
+                keys.forEach((k, i) => allData[k] = data[i]);
+
+                return allData;
+            }
         }
     }
 
     async set(id, key, value) {
-        const data = {};
-        data[key] = value;
+        const hash = `${this.namespace}:${key}`
+        
+        await this.redis.hSet(hash, id, JSON.stringify(value));
+    }
 
-        await this.sets(id, data);
+    async sets(id, data) {
+        const promises = [];
+
+        for (const [key, value] of Object.entries(data)) {
+            const hash = `${this.namespace}:${key}`;
+
+            promises.push(this.redis.hSet(hash, id, JSON.stringify(value)));
+        }
+
+        await Promise.all(promises);
     }
 
     async delete(id, ...keys) {
         const hash = `${this.namespace}:${id}`;
 
         if (id == null) {
-            const keys = await this.getKeys();
+            const promises = [];
 
             for (const key of keys) {
-                await this.redis.del(key);
+                promises.push(this.redis.del(hash));
             }
+
+            await Promise.all(promises);
         }
-        else if (keys.length == 0) {
-            await this.redis.del(hash);
-        }
-        else {         
+        else {
+            const promises = [];
+
             for (const key of keys) {
-                await this.redis.hDel(hash, key);
+                const hash = `${this.namespace}:${key}`;
+
+                promises.push(this.redis.hDel(hash));
             }
+                
+            await Promise.all(promises);          
         }
     }
 }
@@ -113,15 +131,18 @@ class HashDataHandler {
         this.hash = hash;
     }
 
+    async getKeys() {
+        const keys = await this.redis.hKeys(this.hash);
+
+        return keys;
+    }
+
     async get(...keys) {
         if (keys.length == 0) {
-            const data = await this.redis.hGetAll(this.hash);
+            const allKeys = await this.getKeys();
+            const data = await this.get(id, allKeys);
 
-            for (const [k, v] of Object.entries(data)) {
-                data[k] = JSON.parse(v);
-            }
-
-            return Object.keys(data).length == 0 ? null : data;
+            return data;
         }
         else if (keys.length == 1) {
             const data = await this.redis.hGet(this.hash, keys[0]);
@@ -130,45 +151,61 @@ class HashDataHandler {
         }
         else {
             const allData = {};
+            const data = await this.redis.hGet(this.hash, keys);
 
-            for (const key of keys) {
-                const data = await this.redis.hGet(this.hash, key);
-
-                allData[key] = JSON.parse(data);
-            }
+            keys.forEach((k, i) => allData[k] = JSON.parse(data[i]));
 
             return allData;
         }
     }
 
-    async sets(data) {
-        for (const [key, value] of Object.entries(data)) {
-            await this.redis.hSet(this.hash, key, JSON.stringify(value));
-        }
+    async set(key, value) {
+        await this.redis.hSet(this.hash, key, JSON.stringify(value));
     }
 
-    async set(key, value) {
-        const data = {};
-        data[key] = value;
+    async sets(data) {
+        const arrayedData = [];
+        
+        for (const [k, v] of Object.entries(data)) {
+            arrayedData.push(k);
+            arrayedData.push(JSON.stringify(v));
+        }
 
-        await this.sets(data);
+        await this.redis.hSet(this.hash, ...arrayedData);
     }
 
     async delete(...keys) {
+        const promises = [];
+
         for (const key of keys) {
-            await this.redis.hDel(key);
+            promises.push(this.redis.hDel(key));
         }
+
+        await Promise.all(promises);
     }
 }
 
-class KeyedDataHandler {
+class DataHandler {
     constructor (redis) {
         this.redis = redis;
     }
 
+    async getKeys() {
+        const keys = [];
+
+        for await (const key of this.redis.scanIterator({ TYPE: 'string', MATCH: `*` })) {
+            keys.push(key);
+        }
+
+        return keys;
+    }
+
     async get(...keys) {
         if (keys.length == 0) {            
-            return null;
+            const allKeys = await this.getKeys();
+            const data = await this.get(allKeys);
+
+            return data;
         }
         else if (keys.length == 1) {
             const data = await this.redis.get(keys[0]);
@@ -177,39 +214,42 @@ class KeyedDataHandler {
         }
         else {
             let allData = {};
+            const data = await this.redis.mGet(keys);
 
-            for (const key of keys) {
-                const data = await this.redis.get(key);
-                
-                allData[key] = JSON.parse(data);
-            }
+            keys.forEach((k, i) => allData[k] = JSON.parse(data[i]));
 
             return allData;
         }
     }
 
     async sets(data) {
-        for (const [key, value] of Object.entries(data)) {
-            await this.redis.set(key, JSON.stringify(value));
+        const arrayedData = [];
+
+        for (const [k, v] of Object.entries(data)) {
+            arrayedData.push(k);
+            arrayedData.push(JSON.stringify(v));
         }        
+
+        await this.redis.mSet(...arrayedData);
     }
 
     async set(key, value) {
-        const data = {};
-        data[key] = value;
-
-        await this.sets(data);
+        await this.redis.set(key, JSON.stringify(value));
     }
 
     async delete(...keys) {
+        const promises = [];
+
         for (const key of keys) {
-            await this.redis.del(key);
+            promises.push(this.redis.del(key));
         }
+
+        await Promise.all(promises);
     }
 }
 
 module.exports = {
     NamespaceDataHandler: NamespaceDataHandler,
     HashDataHandler: HashDataHandler,
-    KeyedDataHandler: KeyedDataHandler
+    DataHandler: DataHandler
 }

@@ -4,16 +4,7 @@ class ScoreboardHandler {
     }
 
     async getLeaderboard(end, start) {
-        const allData = await this.client.userDataHandler.get();
-
-        const scores = {};
-
-        for (const [id, data] of Object.entries(allData)) {
-            if ('points' in data) {
-                scores[id] = data.points;
-            }
-        }
-    
+        const scores = await this.client.userDataHandler.get(null, 'points');    
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;
@@ -29,12 +20,12 @@ class ScoreboardHandler {
 
     async getLeaderboardText() {
         const leaderboard = await this.getLeaderboard(10);
+        let text = '**___LEADERBOARD___**\n\n';
         
         if (leaderboard.length == 0) {
-            return '';
+            return text;
         }
         else {
-            let text = '**___LEADERBOARD___**\n\n';
             const top = leaderboard[0];
             const bottom = leaderboard[leaderboard.length - 1];
     

@@ -29,16 +29,17 @@ const letterEmoji = {
 }
 
 class Grid {
-    constructor(length, width) {
+    constructor(length, width, defaultTileDisplay) {
         this.grid = [];
         this.length = length;
         this.width = width;
-
+        this.defaultTileDisplay = defaultTileDisplay == null ? '🔲' : defaultTileDisplay;
+    
         for (let y = 0; y < width; y++) {
             const row = [];
 
             for (let x = 0; x < length; x++) {
-                row.push({ display: '🔲' });
+                row.push({ display: this.defaultTileDisplay });
             }
 
             this.grid.push(row);
@@ -81,7 +82,7 @@ class Grid {
             for (let x = 0; x < this.length; x++) {
                 delete this.grid[y][x];
                 
-                this.grid[y][x] = { display: '🔲' };
+                this.grid[y][x] = { display: this.defaultTileDisplay };
             }
         }
     }
