@@ -140,6 +140,11 @@ async function parseGridCoordinates(interaction, arg) {
 
 async function processList(interaction, argName, parser) {
     const rawArg = interaction.options.getString(argName);
+    
+    if (rawArg == null) {
+        return [];
+    }
+    
     const splitArgs = rawArg.split(/[ ]+/);
     const processedArgs = [];
 
