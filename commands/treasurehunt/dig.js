@@ -32,9 +32,9 @@ module.exports = {
             type : 'grid_coordinates',
             description: 'Coordinates of where to dig.',
             optional: false,
-            check: checks.isFreeSpace
+            checks: checks.isFreeSpace
         }
     },
-    check: checks.hasNotDug,
-    execute: execute
+    checks: checks.hasNotDug,
+    executes: execute
 }

@@ -61,7 +61,7 @@ module.exports = {
             type: 'string',
             description: "Hex color you want to change to.",
             optional: false,
-            check: isValidHexColor
+            checks: isValidHexColor
         },
         target: {
             type: 'member',

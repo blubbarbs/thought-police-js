@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const path = require('node:path');
-const { CommandHandler }  = require('./handlers/command_handler.js');
+const { CommandHandler, onInteract }  = require('./handlers/command/command_handler.js');
 const { NamespaceDataHandler, DataHandler } = require('./handlers/redis_data_handler.js');
 const { JingleHandler } = require('./handlers/jingle_handler.js');
 const { PointsHandler } = require('./handlers/points_handler.js');
@@ -13,46 +13,56 @@ const { TreasureHunt } = require('./games/treasure_hunt.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MEMBERS] });
 const redis = createClient({ url: process.env.REDIS_URL });
 
-client.redis = redis;
-client.roleDataHandler = new NamespaceDataHandler(redis, 'role_info');
-client.userDataHandler = new NamespaceDataHandler(redis, 'user_info');
-client.treasureHunt = new TreasureHunt(client);
-client.dataHandler = new DataHandler(redis);
-client.commandHandler = new CommandHandler(client);
-client.pointsHandler = new PointsHandler(client);
-client.jingleHandler = new JingleHandler();
-
-client.on('ready', async () => {
-    await redis.connect();
+async function setupClientEvents() {
+    client.on('ready', async () => {
+        client.guild = await client.guilds.fetch('209496826204782592');
+        client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
+        client.scoreboardChannel = await client.guild.channels.fetch('987990655601102899');
     
+        await client.treasureHunt.loadGame();
+    });
+    
+    client.on('shardDisconnect', async () => {
+        await client.redis.disconnect();
+        clearInterval(client.redisHeartbeat);
+    }); 
+    
+    client.on('guildMemberRemove', async (member) => {
+        const roles = Array.from(member.roles.cache.keys());
+        const timesLeft = +(await client.userDataHandler.get(member.id, 'timesLeft'));
+    
+        await client.userDataHandler.sets(member.id, { roles: roles, 'times_left': timesLeft + 1 });
+    
+    });
+    
+    client.on('guildMemberAdd', async (member) => {
+        const previousRoles = client.userDataHandler.get(member.id, 'roles');
+    
+        if (previousRoles != null) {
+            await member.roles.add(previousRoles);
+        }
+    });
+
+    client.on('interactionCreate', onInteract);
+}
+
+async function setupClient() {
+    await redis.connect();
+
+    client.redis = redis;
     client.redisHeartbeat = setInterval(async () => await redis.ping(), 60000);
-    client.guild = await client.guilds.fetch('209496826204782592');
-    client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
-    client.scoreboardChannel = await client.guild.channels.fetch('987990655601102899');
+    client.roleDataHandler = new NamespaceDataHandler(redis, 'role_info');
+    client.userDataHandler = new NamespaceDataHandler(redis, 'user_info');
+    client.treasureHunt = new TreasureHunt(client);
+    client.dataHandler = new DataHandler(redis);
+    client.commandHandler = new CommandHandler(client);
+    client.pointsHandler = new PointsHandler(client);
+    client.jingleHandler = new JingleHandler();
+    
+    await setupClientEvents();
 
-    await client.treasureHunt.loadGame();
-});
+    await client.commandHandler.reloadCommands(path.join(__dirname, 'commands'));
+    client.login(process.env.TOKEN);
+}
 
-client.on('shardDisconnect', async () => {
-    await client.redis.disconnect();
-    clearInterval(client.redisHeartbeat);
-}); 
-
-client.on('guildMemberRemove', async (member) => {
-    const roles = Array.from(member.roles.cache.keys());
-    const timesLeft = +(await client.userDataHandler.get(member.id, 'timesLeft'));
-
-    await client.userDataHandler.sets(member.id, { roles: roles, 'times_left': timesLeft + 1 });
-
-});
-
-client.on('guildMemberAdd', async (member) => {
-    const previousRoles = client.userDataHandler.get(member.id, 'roles');
-
-    if (previousRoles != null) {
-        await member.roles.add(previousRoles);
-    }
-});
-
-client.commandHandler.reloadCommands(path.join(__dirname, 'commands'));
-client.login(process.env.TOKEN);
+setupClient().then(() => console.log('Loaded client.')).catch((error) => console.error(error));
