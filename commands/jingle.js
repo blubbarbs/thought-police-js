@@ -36,7 +36,7 @@ module.exports = {
         url: {
             type: 'string',
             description: 'URL directing to the .mp3 file to be played.',
-            optional: false,
+            required: true,
             check: isAudioURL
         }
     },

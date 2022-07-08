@@ -21,7 +21,7 @@ module.exports = {
         command: {
             type: 'string_list',
             description: 'Redis command to execute.',
-            optional: false
+            required: true
         }
     },
     permissions: Permissions.FLAGS.ADMINISTRATOR,

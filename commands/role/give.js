@@ -48,17 +48,17 @@ module.exports = {
         role: {
             type: 'role',
             description: 'The role you want to give.',
-            optional: false
+            required: true
         },
         targets: {
             type: 'member_list',
             description: 'The members you want to give the role to.',
-            optional: false
+            required: true
         },
         reason: {
             type: 'string',
             description: 'The reason the target(s) are getting this role.',
-            optional: false
+            required: true
         }
     },
     permissions: Permissions.FLAGS.ADMINISTRATOR,

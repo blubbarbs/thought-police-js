@@ -31,7 +31,7 @@ module.exports = {
         coordinates: {
             type : 'grid_coordinates',
             description: 'Coordinates of where to dig.',
-            optional: false,
+            required: true,
             checks: checks.isFreeSpace
         }
     },

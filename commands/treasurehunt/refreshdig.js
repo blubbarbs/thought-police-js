@@ -15,7 +15,7 @@ module.exports = {
         target: {
             type : 'member',
             description: 'Who to refresh the dig cycle for.',
-            optional: false,
+            required: true
         }
     },
     permissions: Permissions.FLAGS.ADMINISTRATOR,

@@ -17,7 +17,7 @@ module.exports = {
         role: {
             type: 'role',
             description: 'The role you want to update.',
-            optional: false
+            required: true
         },
         description: {
             type: 'string',

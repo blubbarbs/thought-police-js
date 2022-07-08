@@ -20,7 +20,7 @@ module.exports = {
         role: {
             type: 'role',
             description: 'The role you want to find info on.',
-            optional: false
+            required: true
         }
     },
     execute: execute
