@@ -36,5 +36,5 @@ module.exports = {
         }
     },
     checks: checks.hasNotDug,
-    executes: execute
+    execute: execute
 }
