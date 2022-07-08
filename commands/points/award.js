@@ -31,12 +31,12 @@ module.exports = {
         points: {
             type: 'integer',
             description: 'The amount of points 1st place gets. Point distribution is: 1st (100%), 2nd (60%), 3rd (30%).',
-            optional: false
+            required: true
         },
         first: {
             type: 'member_list',
             description: 'The members who got 1st place.',
-            optional: false
+            required: true
         },
         second: {
             type: 'member_list',
