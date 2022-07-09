@@ -2,8 +2,8 @@ const { checks } = require('../../games/treasure_hunt.js');
 const { toAlphanumeric } = require('../../games/util/grid'); 
 
 async function execute(interaction, args) {
-    const [x, y] = args['coordinates'];
     const treasureHunt = interaction.client.treasureHunt;
+    const [x, y] = args['coordinates'];
     const reward = await treasureHunt.dig(interaction.member.id, x, y);
 
     if (reward != null) {
@@ -21,7 +21,7 @@ async function execute(interaction, args) {
         }
     }
     else {
-        await interaction.reply({ content: `No luck. Nothing was found at the spot you dug.` , ephemeral: true });
+        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. Nothing was found.` });
     }
 }
 

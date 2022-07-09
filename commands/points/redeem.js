@@ -1,6 +1,6 @@
 async function execute(interaction, args) {
-    const client = interaction.client;
-    let points = await client.userDataHandler.get(interaction.member.id, 'points');
+    const pointsHandler = interaction.client.pointsHandler;
+    let points = await pointsHandler.getPoints(interaction.member.id);
 
     await interaction.reply({ content: 'This feature is under construction!', ephemeral: true });
 }

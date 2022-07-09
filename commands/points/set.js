@@ -19,13 +19,14 @@ async function execute(interaction, args) {
 module.exports = {
     description: 'Sets points of a specific member.',
     args: {
+        points: {
+            type: 'integer',
+            description: 'New point amount.',
+            required: true
+        },
         target: {
             type: 'member',
             description: 'The person whose points you want to set.'
-        },
-        points: {
-            type: 'integer',
-            description: 'New point amount.'
         }
     },
     permissions: Permissions.FLAGS.ADMINISTRATOR,

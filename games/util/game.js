@@ -1,13 +1,13 @@
 const { Collection } = require("discord.js");
-const { HashDataHandler } = require("../../handlers/redis_data_handler");
+const { HashRedisHandler } = require("../../redis/HashRedisHandler");
 const { Grid } = require("./grid");
 
 class Game {
     constructor(client, name) {
         this.name = name;
         this.client = client;
-        this.dataHandler = new HashDataHandler(client.redis, name);
-        this.data = new Collection();
+        this.database = new HashRedisHandler(client.redis, name);
+        this.gameData = new Collection();
         this.playerData = new Collection();
     }
 
@@ -22,11 +22,11 @@ class Game {
     }
 
     getData(key) {
-        return this.data.get(key);
+        return this.gameData.get(key);
     }
 
     setData(key, value) {
-        this.data.set(key, value);
+        this.gameData.set(key, value);
     }
 
     getPlayerData(id, key) {
@@ -38,16 +38,16 @@ class Game {
     }
 
     async newGame() {
-        this.data.clear();
+        this.gameData.clear();
         this.playerData.clear();
     }
 
     async loadGame() {
-        const data = await this.dataHandler.get('data');
-        const playerData = await this.dataHandler.get('player_data');
+        const data = await this.database.get('data');
+        const playerData = await this.database.get('player_data');
 
         if (data != null) {
-            this.data = new Collection(data);
+            this.gameData = new Collection(data);
         }
 
         if (playerData != null) {
@@ -60,14 +60,14 @@ class Game {
     }
 
     async saveGame() {
-        const dataEntries = Array.from(this.data.entries());
+        const dataEntries = Array.from(this.gameData.entries());
         const playerEntries = [];
         
         for (const [key, data] of this.playerData.entries()) {
             playerEntries.push([key, Array.from(data.entries())]);
         }
 
-        await this.dataHandler.sets( { data: dataEntries, 'player_data': playerEntries });
+        await this.database.sets({ data: dataEntries, 'player_data': playerEntries });
     }
 }
 
@@ -135,17 +135,18 @@ class GridGame extends Game {
     async loadGame() {
         await super.loadGame();
         
-        const grid = await this.dataHandler.get('grid');
+        const grid = await this.database.get('grid');
 
         if (grid != null) {
             this.grid.grid = grid.grid;
+            this.grid.defaultTileDisplay = grid.defaultTileDisplay;
         }
     }
 
     async saveGame() {
         await super.saveGame();
 
-        await this.dataHandler.set('grid', this.grid);
+        await this.database.set('grid', this.grid);
     }
 }
 

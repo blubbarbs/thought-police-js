@@ -4,13 +4,13 @@ class PointsHandler {
     }
 
     async getPoints(id) {
-        const points = await this.client.userDataHandler.get(id, 'points');
+        const points = await this.client.userData.get(id, 'points');
 
         return +points;
     }
 
     async setPoints(id, points, updateLeaderboard) {
-        await this.client.userDataHandler.set(id, 'points', points);
+        await this.client.userData.set(id, 'points', points);
 
         if (updateLeaderboard == null || updateLeaderboard == true) {
             await this.updateLeaderboard();
@@ -19,12 +19,15 @@ class PointsHandler {
 
     async addPoints(id, deltaPoints, updateLeaderboard) {
         const currentPoints = await this.getPoints(id);
+        const newPoints = currentPoints + deltaPoints;
 
         await this.setPoints(id, currentPoints + deltaPoints, updateLeaderboard);
+    
+        return newPoints;
     }
 
     async getLeaderboard(end, start) {
-        const scores = await this.client.userDataHandler.get(null, 'points');    
+        const scores = await this.client.userData.get(null, 'points');    
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;
