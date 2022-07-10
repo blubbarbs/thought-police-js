@@ -1,13 +1,15 @@
 const { GridGame } = require("./util/game.js");
 
-const minTreasures = 1;
-const maxTreasures = 4;
-const minPoints = 30;
-const maxPoints = 50;
+const COOLDOWN_TIMER_MINS = 1200;
 
-const jackpotProbability = .05;
-const minPointsJackpot = 75;
-const maxPointsJackpot = 100;
+const MIN_TREASURES = 1;
+const MAX_TREASURES = 4;
+const MIN_POINTS = 30;
+const MAX_POINTS = 50;
+
+const JACKPOT_PROBABILITY = .05;
+const MIN_POINTS_JACKPOT = 75;
+const MAX_POINTS_JACKPOT = 100;
 
 async function isValidSpace(interaction, arg) {
     const treasureHunt = interaction.client.treasureHunt;
@@ -30,25 +32,43 @@ async function isFreeSpace(interaction, arg) {
     }
 }
 
-async function hasNotDug(interaction, args) {
+async function canDig(interaction, args) {
     const treasureHunt = interaction.client.treasureHunt;
-    const lastDigTime = treasureHunt.getPlayerData(interaction.member.id, 'last_dig_time');
 
-    if (lastDigTime != null) {
-        const msDifference = Date.now() - lastDigTime;
-        const minutesDifference = Math.floor(msDifference / 60000);
+    if (treasureHunt.hasUsedDailyDig(interaction.member.id) && treasureHunt.getFreeDigs(interaction.member.id) == 0) {
+        const minutesTillDailyDig = treasureHunt.getMinutesTillNextDig(interaction.member.id);
+        const hours = Math.floor(minutesTillDailyDig / 60);
+        const minutes = minutesTillDailyDig % 60;
 
-        if (minutesDifference < 1200) {
-            const minutesTillRefresh = 1200 - minutesDifference;
-
-            throw `You have already taken your daily dig. Your next dig will be available in ${(Math.floor(minutesTillRefresh / 60))} hours and ${minutesTillRefresh % 60} minutes.`;
-        }
+        throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in ${hours} hour(s) and ${minutes} minutes.`;
     }
 }
 
 class TreasureHuntGame extends GridGame {
     constructor (client) {
         super(client, 'treasure_hunt', 10, 10);
+    }
+
+    getMinutesTillNextDig(id) {
+        const lastDigTime = this.getPlayerData(id, 'last_dig_time');
+
+        if (lastDigTime != null) {
+            const msDifference = Date.now() - lastDigTime;
+            const minutesDifference = Math.floor(msDifference / 60000);
+
+            return COOLDOWN_TIMER_MINS - minutesDifference;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    getFreeDigs(id) {
+        return this.getPlayerData(id, 'free_digs') || 0;
+    }
+
+    hasUsedDailyDig(id) {
+        return this.getMinutesTillNextDig(id) > 0;
     }
 
     getBoardEmbed() {        
@@ -74,12 +94,12 @@ class TreasureHuntGame extends GridGame {
     }
 
     async newGame() {
-        await super.newGame();
+        this.grid.clear();
+        this.playerData.forEach((data) => data.set('last_dig_time', null));
 
-        if (this.roll(jackpotProbability)) {
+        if (this.roll(JACKPOT_PROBABILITY)) {
             const [jackpotX, jackpotY] = this.randomTile();
-
-            const jackpotAmount = this.randomInt(maxPointsJackpot, minPointsJackpot);
+            const jackpotAmount = this.randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
 
             this.setTileData(jackpotX, jackpotY, 'treasure', jackpotAmount);
             this.setData('treasures_left', 1);
@@ -87,9 +107,9 @@ class TreasureHuntGame extends GridGame {
             this.grid.defaultTileDisplay = '🟨';
         }
         else {
-            const numTreasures = this.randomInt(maxTreasures, minTreasures);
+            const numTreasures = this.randomInt(MAX_TREASURES, MIN_TREASURES);
             const treasureTiles = numTreasures == 1 ? [this.randomTile(numTreasures)] : this.randomTile(numTreasures);
-            const totalTreasureAmount = this.randomInt(maxPoints, minPoints);
+            const totalTreasureAmount = this.randomInt(MAX_POINTS, MIN_POINTS);
             let treasurePool = totalTreasureAmount;
 
             for (let i = 0; i < treasureTiles.length - 1; i++) {
@@ -120,8 +140,14 @@ class TreasureHuntGame extends GridGame {
             this.setTileDisplay(x, y, '❌');
         }
 
-        this.setPlayerData(id, 'last_dig_time', Date.now());
         this.setTileData(x, y, 'is_dug', true);
+
+        if (this.hasUsedDailyDig(id)) {
+            this.setPlayerData(id, 'free_digs', this.getFreeDigs(id) - 1);
+        }
+        else {
+            this.setPlayerData(id, 'last_dig_time', Date.now());
+        }
 
         await this.saveGame();
         
@@ -134,6 +160,6 @@ module.exports = {
     checks: {
         isValidSpace: isValidSpace,
         isFreeSpace: isFreeSpace,
-        hasNotDug: hasNotDug
+        canDig: canDig
     }
 }

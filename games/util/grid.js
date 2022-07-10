@@ -1,4 +1,4 @@
-const numEmoji = {
+const NUM_EMOJI = {
     0: '0️⃣',
     1: '1️⃣',
     2: '2️⃣',
@@ -13,7 +13,7 @@ const numEmoji = {
     11: '⏸️'
 }
 
-const letterEmoji = {
+const LETTER_EMOJI = {
     0: '🇦',
     1: '🇧',
     2: '🇨',
@@ -121,13 +121,13 @@ class Grid {
         const displayGrid = [letterRow];
 
         for (let x = 0; x < this.length; x++) {
-            letterRow.push(numEmoji[x]);
+            letterRow.push(NUM_EMOJI[x]);
         }
 
         for (let y = 0; y < this.width; y++) {
             let row = [];
 
-            row.push(letterEmoji[y]);
+            row.push(LETTER_EMOJI[y]);
 
             for (let x = 0; x < this.length; x++) {
                 const display = 'display' in this.grid[y][x] ? this.grid[y][x].display : this.defaultTileDisplay;

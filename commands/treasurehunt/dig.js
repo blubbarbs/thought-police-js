@@ -4,6 +4,7 @@ const { toAlphanumeric } = require('../../games/util/grid');
 async function execute(interaction, args) {
     const treasureHunt = interaction.client.treasureHunt;
     const [x, y] = args['coordinates'];
+    const usedFreeDig = treasureHunt.hasUsedDailyDig(interaction.member.id);
     const reward = await treasureHunt.dig(interaction.member.id, x, y);
 
     if (reward != null) {
@@ -23,6 +24,10 @@ async function execute(interaction, args) {
     else {
         await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. Nothing was found.` });
     }
+
+    if (usedFreeDig) {
+        await interaction.followUp({ content: `You have used up a free dig. You have ${treasureHunt.getFreeDigs(interaction.member.id)} free digs remaining.`, ephemeral: true });
+    }    
 }
 
 module.exports = {
@@ -35,6 +40,6 @@ module.exports = {
             checks: checks.isFreeSpace
         }
     },
-    checks: checks.hasNotDug,
+    checks: checks.canDig,
     execute: execute
 }
