@@ -2,7 +2,7 @@ const { Permissions } = require('discord.js');
 
 async function execute(interaction, args) {
     const pointsHandler = interaction.client.pointsHandler;
-    const target = args['target'] == null ? interaction.member : args['target'];
+    const target = args['target'] || interaction.member;
     const newPoints = args['points'];
 
     await pointsHandler.setPoints(target.id, newPoints);

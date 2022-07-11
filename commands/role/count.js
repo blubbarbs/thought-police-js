@@ -1,7 +1,5 @@
-const { Permissions } = require('discord.js');
-
 async function execute(interaction, args) {
-    const target = args['target'] != null ? args['target'] : interaction.member;
+    const target = args['target'] || interaction.member;
     const roleCount = target.roles.cache.size - 1;
 
     if (target == interaction.member) {

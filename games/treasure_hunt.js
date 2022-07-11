@@ -40,7 +40,7 @@ async function canDig(interaction, args) {
         const hours = Math.floor(minutesTillDailyDig / 60);
         const minutes = minutesTillDailyDig % 60;
 
-        throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in ${hours} hour(s) and ${minutes} minutes.`;
+        throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in **${hours} hour(s)** and **${minutes} minutes**.`;
     }
 }
 
@@ -55,8 +55,9 @@ class TreasureHuntGame extends GridGame {
         if (lastDigTime != null) {
             const msDifference = Date.now() - lastDigTime;
             const minutesDifference = Math.floor(msDifference / 60000);
+            const minutesTill = COOLDOWN_TIMER_MINS - minutesDifference;
 
-            return COOLDOWN_TIMER_MINS - minutesDifference;
+            return minutesTill > 0 ? minutesTill : 0;
         }
         else {
             return 0;

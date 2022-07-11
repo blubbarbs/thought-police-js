@@ -12,17 +12,17 @@ async function execute(interaction, args) {
         const pointsHandler = interaction.client.pointsHandler;
 
         await pointsHandler.addPoints(interaction.member.id, reward);
-        await interaction.reply({ content: `${interaction.member} has found ${reward} points at ${toAlphanumeric(x, y)}. Congrats!` });
+        await interaction.reply({ content: `${interaction.member} has found ${reward} points at ${toAlphanumeric(x, y)}. Congrats!`, embeds: [treasureHunt.getBoardEmbed()] });
 
         if (treasuresLeft == 0) {
             await treasureHunt.newGame();
             await treasureHunt.saveGame();
 
-            await interaction.followUp({ content: 'That was all of the treasure on the board. Starting a new game...' });
+            await interaction.followUp({ content: 'That was all of the treasure on the board. Starting a new game...', embeds: [treasureHunt.getBoardEmbed()] });
         }
     }
     else {
-        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. Nothing was found.` });
+        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. Nothing was found.`, embeds: [treasureHunt.getBoardEmbed()] });
     }
 
     if (usedFreeDig) {

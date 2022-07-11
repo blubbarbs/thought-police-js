@@ -52,7 +52,8 @@ class CommandHandler {
         const discordAPICommands = [];
 
         for (const commandFileName of fs.readdirSync(commandsPath)) {
-            const command = new Command(path.join(commandsPath, commandFileName));
+            const commandPath = path.join(commandsPath, commandFileName);
+            const command = Command.fromPath(commandPath);
             
             this.commands.set(command.name, command);
             discordAPICommands.push(command.toDiscordAPI());
@@ -65,7 +66,7 @@ class CommandHandler {
             await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands })
             await this.client.redis.set('commands', discordCommandsJSON);
             
-            console.log('New commands found. Succesfully updated commands.');
+            console.log('Different command structure found. Succesfully updated commands.');
         }
         else {
             console.log('Command structure unchanged. All commands loaded.');

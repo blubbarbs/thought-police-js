@@ -35,11 +35,11 @@ module.exports = {
     args: {
         url: {
             type: 'string',
-            description: 'URL directing to the .mp3 file to be played.',
+            description: 'URL directing to the audio file to be played.',
             required: true,
-            check: isAudioURL
+            checks: isAudioURL
         }
     },
-    check: isMemberConnectedToVoice,
+    checks: isMemberConnectedToVoice,
     execute: execute
 }

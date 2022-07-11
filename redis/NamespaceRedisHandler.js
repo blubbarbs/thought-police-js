@@ -106,7 +106,7 @@ class NamespaceRedisHandler {
             const hash = `${this.namespace}:${key}`;
             const promise = id == null ? this.redis.del(hash) : this.redis.hDel(hash, id); 
 
-            promises.push(this.redis.del(hash));
+            promises.push(promise);
         }
 
         await Promise.all(promises);

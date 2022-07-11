@@ -48,7 +48,7 @@ async function makeColorRole(guild, hexColor) {
 
 async function execute(interaction, args) {
     const color = args['color'];
-    const target = args['target'] != null ? args['target'] : interaction.member;
+    const target = args['target'] || interaction.member;
     
     await colorMember(target, color);
     await interaction.reply({ content: `Colored.`, ephemeral: true });

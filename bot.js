@@ -6,6 +6,7 @@ const { RedisHandler } = require('./redis/RedisHandler');
 const { NamespaceRedisHandler } = require('./redis/NamespaceRedisHandler');
 const { JingleHandler } = require('./handlers/jingle_handler.js');
 const { PointsHandler } = require('./handlers/points_handler.js');
+const { RoleHandler } = require('./handlers/role_handler.js');
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
@@ -17,9 +18,7 @@ const redis = createClient({ url: process.env.REDIS_URL });
 async function setupClientEvents() {
     client.on('ready', async () => {
         client.guild = await client.guilds.fetch('209496826204782592');
-        client.announcementChannel = await client.guild.channels.fetch('794518074425475072');
-        client.scoreboardChannel = await client.guild.channels.fetch('987990655601102899');
-    
+
         await client.treasureHunt.loadGame();
     });
     
@@ -57,6 +56,7 @@ async function setupClient() {
     client.data = new RedisHandler(redis);
 
     client.commandHandler = new CommandHandler(client);
+    client.roleHandler = new RoleHandler(client);
     client.pointsHandler = new PointsHandler(client);
     client.jingleHandler = new JingleHandler();
     
@@ -68,4 +68,8 @@ async function setupClient() {
     client.login(process.env.TOKEN);
 }
 
-setupClient().then(() => console.log('Loaded client.')).catch((error) => console.error(error));
+process.env.TZ = 'America/Los_Angeles';
+
+setupClient()
+.then(() => console.log('Loaded client.'))
+.catch((error) => console.error(error));

@@ -1,8 +1,9 @@
 const processors = require('./command_arg_processors.js');
 
 class CommandArgument {
-    constructor(name, argObject) {
+    constructor(name, argObject, command) {
         this.name = name;
+        this.command = command;
         this.type = argObject.type || 'string';
         this.description = argObject.description || 'N/A';
         this.permissions = argObject.permissions || [];

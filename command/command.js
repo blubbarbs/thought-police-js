@@ -4,7 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 
 class Command {
-    constructor(commandPath, parent) {
+    static fromPath(commandPath, parent) {
         let commandObj = null;
         let hasSubcommands = false;
 
@@ -19,9 +19,24 @@ class Command {
             commandObj = {};
             hasSubcommands = true;
         }
-        
+
+        const commandName = path.basename(commandPath, '.js');
+        const command = new Command(commandName, commandObj, parent);
+
+        if (hasSubcommands) {
+            for (const subcommandFileName of fs.readdirSync(commandPath).filter((name) => name.endsWith('.js') && name != '.js')) {
+                const subcommand = Command.fromPath(path.join(commandPath, subcommandFileName), command);
+
+                command.subcommands.set(subcommand.name, subcommand);
+            }
+        }
+
+        return command;
+    }
+
+    constructor(name, commandObj, parent) {
+        this.name = name;
         this.parent = parent;
-        this.name = path.basename(commandPath, '.js');
         this.identifier = parent != null ? `${parent.identifier}.${this.name}` : this.name;
         this.description = commandObj.description || 'N/A';
         this.permissions = commandObj.permissions || [];
@@ -33,15 +48,7 @@ class Command {
 
         if ('args' in commandObj) {
             for (const [name, argObject] of Object.entries(commandObj.args)) {
-                this.args.set(name, new CommandArgument(name, argObject));
-            }
-        }
-
-        if (hasSubcommands) {
-            for (const subcommandFileName of fs.readdirSync(commandPath).filter((name) => name.endsWith('.js') && name != '.js')) {
-                const subcommand = new Command(path.join(commandPath, subcommandFileName), this);
-
-                this.subcommands.set(subcommand.name, subcommand);
+                this.args.set(name, new CommandArgument(name, argObject, this));
             }
         }
     }

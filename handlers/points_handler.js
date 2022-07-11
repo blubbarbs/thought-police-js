@@ -26,6 +26,12 @@ class PointsHandler {
         return newPoints;
     }
 
+    async getLeaderboardChannel() {
+        const channel = await this.client.guild.channels.fetch('987990655601102899');
+
+        return channel;
+    }
+
     async getLeaderboard(end, start) {
         const scores = await this.client.userData.get(null, 'points');    
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
@@ -64,12 +70,13 @@ class PointsHandler {
     }
 
     async updateLeaderboard() {
-        const messages = await this.client.scoreboardChannel.messages.fetch({ limit: 1 });
+        const leaderboardChannel = await this.getLeaderboardChannel();
+        const leaderboardMessages = await leaderboardChannel.messages.fetch({ limit: 1 });
         const leaderboardText = await this.getLeaderboardText();
         let leaderboardMessage = null;
 
-        if (messages.size == 0) {
-            leaderboardMessage = await this.client.scoreboardChannel.send('Placeholder, should not be seen');
+        if (leaderboardMessages.size == 0) {
+            leaderboardMessage = await leaderboardChannel.send('Placeholder, should not be seen');
         }
         else {
             leaderboardMessage = messages.first();

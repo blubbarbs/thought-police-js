@@ -25,7 +25,7 @@ async function countPins(textChannel, member) {
 }
 
 async function execute(interaction, args) {
-    const target = args['target'] != null ? args['target'] : interaction.member;
+    const target = args['target'] || interaction.member;
     const channel = args['channel'];
 
     if (channel == null) {
@@ -36,7 +36,7 @@ async function execute(interaction, args) {
             await interaction.editReply(`Your total pin count for the server is: ${count}.`);
         }
         else {
-            await interaction.editReply(`The total pin count for ${target.displayName} on the server is: ${count}.`);        
+            await interaction.editReply(`The total pin count for ${target} on the server is: ${count}.`);        
         }
     }
     else {
@@ -46,7 +46,7 @@ async function execute(interaction, args) {
             await interaction.reply({ content: `Your total pin count in ${channel} is: ${count}.`, ephemeral: true });
         }
         else {
-            await interaction.reply({ content: `The total pin count for ${target.displayName} in ${channel} is: ${count}.`, ephemeral: true });
+            await interaction.reply({ content: `The total pin count for ${target} in ${channel} is: ${count}.`, ephemeral: true });
         }
     }
 }
