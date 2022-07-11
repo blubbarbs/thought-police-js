@@ -11,6 +11,7 @@ const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
 
 const { TreasureHunt } = require('./games/treasure_hunt.js');
+const { MudaeHandler } = require('./handlers/mudae_handler.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MEMBERS] });
 const redis = createClient({ url: process.env.REDIS_URL });
@@ -20,10 +21,13 @@ async function setupClientEvents() {
         client.guild = await client.guilds.fetch('209496826204782592');
 
         await client.treasureHunt.loadGame();
+        await client.mudaeHandler.updateCurfew();
     });
     
     client.on('shardDisconnect', async () => {
         await client.redis.disconnect();
+        
+        clearTimeout(client.mudaeHandler.activeTimeoutID);
         clearInterval(client.redisHeartbeat);
     }); 
     
@@ -59,6 +63,7 @@ async function setupClient() {
     client.roleHandler = new RoleHandler(client);
     client.pointsHandler = new PointsHandler(client);
     client.jingleHandler = new JingleHandler();
+    client.mudaeHandler = new MudaeHandler(client);
     
     client.treasureHunt = new TreasureHunt(client);
 
