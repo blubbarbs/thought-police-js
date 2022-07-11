@@ -5,7 +5,7 @@ async function execute(interaction, args) {
     const minutesTillDaily = treasureHunt.getMinutesTillNextDig(interaction.member.id);
     const freeDigs = treasureHunt.getFreeDigs(interaction.member.id);
 
-    await interaction.reply({ content: `**${Math.floor(minutesTillDaily / 60)} hour(s)** and **${minutesTillDaily % 60} minute(s)** till next dig\nFree Digs: ${freeDigs}`, ephemeral: true });
+    await interaction.reply({ content: `**${Math.floor(minutesTillDaily / 60)} hour(s)** and **${minutesTillDaily % 60} minute(s)** till next dig\n**${freeDigs}** free digs remaining`, ephemeral: true });
 }
 
 module.exports = {
