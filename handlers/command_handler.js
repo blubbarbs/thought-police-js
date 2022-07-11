@@ -4,6 +4,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Collection } = require('discord.js');
 const { Command } = require('../command/command.js');
+const { looseEquals } = require('../util/equals.js');
 
 const restAPI = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
@@ -62,7 +63,7 @@ class CommandHandler {
         const discordCommandsJSON = JSON.stringify(discordAPICommands);
         const discordCommandsJSONOld = await this.client.redis.get('commands');
 
-        if (discordCommandsJSON != discordCommandsJSONOld) {    
+        if (discordCommandsJSON != discordCommandsJSONOld) {
             await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands })
             await this.client.redis.set('commands', discordCommandsJSON);
             

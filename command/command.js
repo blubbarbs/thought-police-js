@@ -70,6 +70,10 @@ class Command {
         return obj;
     }
 
+    toJSON() {
+        return this.toDiscordAPI();
+    }
+
     async execute(interaction) {
         const processedArgs = {};
 
