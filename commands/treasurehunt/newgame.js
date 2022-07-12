@@ -1,10 +1,9 @@
 const { Permissions } = require('discord.js');
+const { TreasureHunt } = require('../../game/treasure_hunt');
 
 async function execute(interaction, args) {
-    const treasureHunt = interaction.client.treasureHunt;
-
-    await treasureHunt.newGame();
-    await treasureHunt.saveGame();
+    await TreasureHunt.newGame();
+    await TreasureHunt.saveGame();
     await interaction.reply({ content: `Successfully started a new game.`, ephemeral: true });
 }
 

@@ -1,9 +1,7 @@
-const { checks } = require('../../games/treasure_hunt.js');
+const { TreasureHunt } = require("../../game/treasure_hunt");
 
 async function execute(interaction, args) {
-    const treasureHunt = interaction.client.treasureHunt;
-    
-    await interaction.reply({ embeds: [treasureHunt.getBoardEmbed()] });
+    await interaction.reply({ embeds: [TreasureHunt.getBoardEmbed()] });
 }
 
 module.exports = {

@@ -1,3 +1,5 @@
+const { randomInt } = require('../util/funcs.js');
+
 const NUM_EMOJI = {
     0: '0️⃣',
     1: '1️⃣',
@@ -28,46 +30,11 @@ const LETTER_EMOJI = {
     11: '🇱'
 }
 
-const gridCoordinatesRegex = /([0-9]+|[A-Za-z]+)([0-9]+|[A-Za-z]+)?/;
-
-function toAlphanumeric(x, y) {
-    return `${String.fromCharCode(y + 65)}${x}`;
-}
-
-function toCoordinates(alphanumeric) {
-    const match = alphanumeric.match(gridCoordinatesRegex);
-
-    if (match == null) {
-        return null;
-    }
-    else if (match[2] == undefined) {
-        const leftMatch = match[1];
-
-        if (isNaN(leftMatch)) {
-            const y = leftMatch.toLowerCase().charCodeAt(0) - 97;
-
-            return [null, y];
-        }
-        else {
-            return [+leftMatch, null];
-        }
-    }
-    else {
-        const leftMatch = match[1];
-        const rightMatch = match[2];
-
-        const xStr = !isNaN(leftMatch) ? leftMatch : rightMatch;
-        const yStr = !isNaN(leftMatch) ? rightMatch.toLowerCase() : leftMatch.toLowerCase();
-        const x = +xStr;
-        const y = yStr.charCodeAt(0) - 97;
-
-        return [x, y];
-    }
-}
-
 class Grid {
-    constructor(length, width, defaultTileDisplay) {
+    constructor(key, database, length, width, defaultTileDisplay) {
         this.grid = [];
+        this.key = key;
+        this.database = database;
         this.length = length;
         this.width = width;
         this.defaultTileDisplay = defaultTileDisplay == null ? '🔲' : defaultTileDisplay;
@@ -87,12 +54,24 @@ class Grid {
         return this.grid[y][x]?.[key];
     }
 
+    getDisplay(x, y) {
+        return this.get(x, y, 'display') || this.defaultTileDisplay;
+    }
+
     sets(x, y, data) {
         Object.assign(this.grid[y][x], data);
     }
 
     set(x, y, key, value) {
         this.grid[y][x][key] = value;
+    }
+
+    setDisplay(x, y, display) {
+        this.set(x, y, 'display', display);
+    }
+
+    resetDisplay(x, y) {
+        this.delete(x, y, 'display');
     }
 
     delete(x, y, key) {
@@ -114,6 +93,34 @@ class Grid {
                 this.grid[y][x] = {};
             }
         }
+    }
+
+    randomTiles(amount, predicate) {
+        amount = amount != null ? amount : 1;
+        const tilePool = [];
+
+        for (let y = 0; y < this.width; y++) {
+            for (let x = 0; x < this.length; x++) {
+                if (predicate == null || predicate(x, y, this.get(x, y))) {                    
+                    tilePool.push([x, y]);
+                }                
+            }
+        }
+        
+        const tiles = [];
+
+        for (let i = 0; i < amount; i++) {
+            const randomIndex = randomInt(tilePool.length - 1);
+            const tile = tilePool.splice(randomIndex, 1);
+
+            tiles.push(tile[0]);
+        }
+
+        return tiles;
+    }
+
+    randomTile(predicate) {
+        return this.randomTiles(1, predicate)[0];
     }
 
     getDisplayGrid() {
@@ -151,10 +158,21 @@ class Grid {
 
         return strArray.join('\n');
     }
+
+    async save() {
+        await this.database.set(this.key, { grid: this.grid, defaultTileDisplay: this.defaultTileDisplay });
+    }
+
+    async load() {
+        const data = await this.database.get(this.key);
+
+        if (data != null) {
+            this.grid = data.grid;
+            this.defaultTileDisplay = data.defaultTileDisplay;    
+        }
+    }
 }
 
 module.exports = {
-    Grid: Grid,
-    toAlphanumeric: toAlphanumeric,
-    toCoordinates: toCoordinates
+    Grid: Grid
 }

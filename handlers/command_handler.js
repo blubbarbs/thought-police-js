@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const { client, database } = require('../bot.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Collection } = require('discord.js');
 const { Command } = require('../command/command.js');
-const { looseEquals } = require('../util/equals.js');
 
 const restAPI = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
@@ -14,68 +14,65 @@ async function onInteract(interaction) {
     }
 
     try {
-        const command = interaction.client.commandHandler.findCommand(interaction.commandName, interaction.options._group, interaction.options._subcommand);
+        const command = findCommand(interaction.commandName, interaction.options._group, interaction.options._subcommand);
 
-        await command.execute(interaction);  
+        await command.execute(interaction);
     }
     catch (e) {
         if (typeof e == 'string') {
-            await interaction.reply({ content: `${e}`, ephemeral: true });
+            await interaction.reply({ content: `\`\`\`${e}\`\`\``, ephemeral: true });
         }
         else {
-            await interaction.reply({ content: `There has been an error while executing this command.`, ephemeral: true });
+            await interaction.reply({ content: '```There has been an unexpected error while executing this command.```', ephemeral: true });
             console.error(e);
         }
     }
-}    
+}
 
-class CommandHandler {
-    constructor(client) {
-        this.client = client;
-        this.commands = new Collection();
+function findCommand(commandName, subcommandGroup, subcommandName) {
+    let command = client.commands.get(commandName);
+
+    if (subcommandGroup != null) {
+        command = command.subcommands.get(subcommandGroup);
     }
 
-    findCommand(commandName, subcommandGroup, subcommandName) {
-        let command = this.commands.get(commandName);
-        
-        if (subcommandGroup != null) {
-            command = command.subcommands.get(subcommandGroup);
-        }
-
-        if (subcommandName != null) {
-            command = command.subcommands.get(subcommandName);
-        }
-
-        return command;
+    if (subcommandName != null) {
+        command = command.subcommands.get(subcommandName);
     }
 
-    async reloadCommands(commandsPath) {
-        const discordAPICommands = [];
+    return command;
+}
 
-        for (const commandFileName of fs.readdirSync(commandsPath)) {
-            const commandPath = path.join(commandsPath, commandFileName);
-            const command = Command.fromPath(commandPath);
-            
-            this.commands.set(command.name, command);
-            discordAPICommands.push(command.toDiscordAPI());
-        }
+async function reloadCommands(commandsPath) {
+    const commands = new Collection();
+    const discordAPICommands = [];
 
-        const discordCommandsJSON = JSON.stringify(discordAPICommands);
-        const discordCommandsJSONOld = await this.client.redis.get('commands');
+    for (const commandFileName of fs.readdirSync(commandsPath)) {
+        const commandPath = path.join(commandsPath, commandFileName);
+        const command = Command.fromPath(commandPath);
 
-        if (discordCommandsJSON != discordCommandsJSONOld) {
-            await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands })
-            await this.client.redis.set('commands', discordCommandsJSON);
-            
-            console.log('Different command structure found. Succesfully updated commands.');
-        }
-        else {
-            console.log('Command structure unchanged. All commands loaded.');
-        }        
+        commands.set(command.name, command);
+        discordAPICommands.push(command.toDiscordAPI());
     }
+
+    const discordCommandsJSON = JSON.stringify(discordAPICommands);
+    const discordCommandsJSONOld = await database.redis.get('commands');
+
+    if (discordCommandsJSON != discordCommandsJSONOld) {
+        await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands })
+        await database.redis.set('commands', discordCommandsJSON);
+
+        console.log('Different command structure found. Succesfully updated commands.');
+    }
+    else {
+        console.log('Command structure unchanged. All commands loaded.');
+    }
+
+    client.commands = commands;
 }
 
 module.exports = {
-    CommandHandler: CommandHandler,
-    onInteract: onInteract
+    onInteract: onInteract,
+    findCommand: findCommand,
+    reloadCommands: reloadCommands
 }

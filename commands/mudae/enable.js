@@ -1,9 +1,8 @@
 const { Permissions } = require('discord.js');
+const { enableMudae } = require('../../handlers/mudae_handler');
 
 async function execute(interaction) {
-    const mudaeHandler = interaction.client.mudaeHandler;
-    
-    await mudaeHandler.enableMudae(true);
+    await enableMudae(true);
     await interaction.reply( { content: `Successfully enabled the mudae channel.`, ephemeral: true });
 }
 

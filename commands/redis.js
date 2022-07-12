@@ -1,13 +1,13 @@
 const { Permissions } = require('discord.js');
+const { database } = require('../bot');
 
 async function execute(interaction, args) {
-    const client = interaction.client;
     const splitCommand = args['command'];
-    const redis = client.redis;
     
     try {
-        const response = await redis.sendCommand(splitCommand);
-        await interaction.reply({ content: `${JSON.stringify(response, null, 2)}`, ephemeral: true });
+        const response = await database.redis.sendCommand(splitCommand);
+        console.log(response);
+        await interaction.reply({ content: `Output response to console.`, ephemeral: true });
     }
     catch (e) {
         console.error(e);

@@ -1,17 +1,26 @@
-async function execute(interaction, args) {
-    const pointsHandler = interaction.client.pointsHandler;
-    let points = await pointsHandler.getPoints(interaction.member.id);
+const { checks } = require("../../handlers/user_handler");
 
-    await interaction.reply({ content: 'This feature is under construction!', ephemeral: true });
+async function execute(interaction, args) {
+    const reward = args['reward'];
+
+    await interaction.reply({ content: `Chosen reward: ${reward}`, ephemeral: true });
 }
 
 module.exports = {
-    description: 'Gives (or takes away) points from a specific member.',
+    description: 'Redeems a reward from the rewards shop.',
     args: {
         reward: {
             type: 'string',
             description: 'The item you want to redeem. For a detailed description, see /points rewards.',
-            choices: ['test1', 'test2', 'test3']
+            choices: {
+                change_nickname: 'Nickname Change - 50 points',
+                change_theme: 'Server Theme Change - 100 points',
+                new_sticker: 'New Sticker - 400 points',
+                voice_jingle: 'Voice Entrance Jingle - 500 points',
+                custom_tag: 'Custom Tag - 1000 points'
+            },
+            required: true,
+            checks: checks.hasEnoughPoints
         }
     },
     execute: execute

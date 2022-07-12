@@ -1,50 +1,47 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } = require('@discordjs/voice');
 const { request } = require('undici');
 
-class JingleHandler {
-    constructor() {
-        this.audioPlayer = createAudioPlayer();
-        this.voiceChannel = null;
-        this.currentConnection = null;
+const audioPlayer = createAudioPlayer();
+let currentConnection = null;
+let currentVoiceChannel = null;
 
-        this.audioPlayer.on(AudioPlayerStatus.Idle, () => this.disconnect());        
+function disconnect() {
+    audioPlayer.stop();
+    currentConnection.destroy();
+
+    voiceChannel = null;
+    currentConnection = null;
+}
+
+function connect(voiceChannel) {
+    currentVoiceChannel = voiceChannel;
+    currentConnection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: voiceChannel.guild.id,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator
+    });
+
+    audioPlayer.once(AudioPlayerStatus.Idle, () => disconnect());       
+    currentConnection.subscribe(audioPlayer);
+}
+
+async function playJingle(voiceChannel, jingleURL) {
+    if (voiceChannel != null && currentVoiceChannel != voiceChannel) {
+        disconnect();
     }
 
-    disconnect() {
-        this.audioPlayer.stop();
-        this.currentConnection.destroy();
-
-        this.voiceChannel = null;
-        this.currentConnection = null;
+    if (currentConnection == null) {
+        connect(voiceChannel);
     }
 
-    connect(voiceChannel) {
-        this.voiceChannel = voiceChannel;
-        this.currentConnection = joinVoiceChannel({
-            channelId: voiceChannel.id,
-            guildId: voiceChannel.guild.id,
-            adapterCreator: voiceChannel.guild.voiceAdapterCreator
-        });
+    const audioStreamReq = await request(jingleURL);
+    const audioResource = createAudioResource(audioStreamReq.body);
 
-        this.currentConnection.subscribe(this.audioPlayer);
-    }
-
-    async playJingle(voiceChannel, jingleURL) {        
-        if (this.voiceChannel != null && this.voiceChannel != voiceChannel) {
-            this.disconnect();
-        }
-
-        if (this.currentConnection == null) {
-            this.connect(voiceChannel);
-        }
-
-        const audioStreamReq = await request(jingleURL);
-        const audioResource = createAudioResource(audioStreamReq.body);        
-
-        this.audioPlayer.play(audioResource);
-    }
+    audioPlayer.play(audioResource);
 }
 
 module.exports = {
-    JingleHandler: JingleHandler
+    connect: connect,
+    disconnect: disconnect,
+    playJingle: playJingle
 }

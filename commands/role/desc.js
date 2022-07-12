@@ -1,5 +1,3 @@
-const { Permissions } = require('discord.js');
-
 async function execute(interaction, args) {
     const client = interaction.client;
     const role = args['role'];

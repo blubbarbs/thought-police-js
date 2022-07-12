@@ -1,11 +1,11 @@
 const { Permissions } = require('discord.js');
+const { setPoints } = require('../../handlers/user_handler.js');
 
 async function execute(interaction, args) {
-    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] || interaction.member;
     const newPoints = args['points'];
 
-    await pointsHandler.setPoints(target.id, newPoints);
+    await setPoints(interaction.member.id, newPoints);
 
     if (target == interaction.member) {
         await interaction.reply({ content: `Set your points to ${newPoints}.`, ephemeral: true });

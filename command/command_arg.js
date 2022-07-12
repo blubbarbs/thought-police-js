@@ -81,6 +81,10 @@ class CommandArgument {
         return obj;
     }
 
+    toJSON() {
+        return this.toDiscordAPI();
+    }
+
     async process(interaction) {
         const processor = processors[this.type] || processors['string'];
         const processedArgument = await processor(interaction, this.name);

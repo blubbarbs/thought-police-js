@@ -1,4 +1,4 @@
-const { toCoordinates } = require("../games/util/grid.js");
+const { toCoordinates } = require("../util/grid_coords.js");
 
 const userRegex = /<@!?([0-9]+)>/;
 const channelRegex = /<#([0-9]+)>/;

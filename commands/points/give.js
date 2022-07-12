@@ -1,10 +1,10 @@
 const { Permissions } = require('discord.js');
+const { addPoints } = require('../../handlers/user_handler');
 
 async function execute(interaction, args) {
-    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] || interaction.member;
     const deltaPoints = args['points'];
-    const points = await pointsHandler.addPoints(interaction.member.id, deltaPoints);
+    const points = await addPoints(interaction.member.id, deltaPoints);
 
     if (deltaPoints < 0) {
         if (target == interaction.member) {

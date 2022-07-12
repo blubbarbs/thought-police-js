@@ -1,13 +1,13 @@
 const { Permissions } = require('discord.js');
+const { TreasureHunt } = require('../../game/treasure_hunt');
 
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
-    const treasureHunt = interaction.client.treasureHunt;
 
-    treasureHunt.setPlayerData(target, 'last_dig_time', null);
-    await treasureHunt.saveGame();
+    TreasureHunt.playerData.set(target.id, 'last_dig_time', null);
+    await TreasureHunt.saveGame();
     
-    if (target == interaction.member.id) {
+    if (target == interaction.member) {
         await interaction.reply({ content: `Successfully refreshed your dig cycle.`, ephemeral: true });
     }
     else {

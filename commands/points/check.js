@@ -1,7 +1,8 @@
+const { getPoints } = require('../../handlers/user_handler.js');
+
 async function execute(interaction, args) {
-    const pointsHandler = interaction.client.pointsHandler;
     const target = args['target'] == null ? interaction.member : args['target'];
-    const points = await pointsHandler.getPoints(interaction.member.id);
+    const points = await getPoints(interaction.member.id);
 
     if (points == 0) {
         if (target == interaction.member) {

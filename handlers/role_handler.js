@@ -1,45 +1,45 @@
-class RoleHandler {
-    constructor(client) {
-        this.client = client;
+const { client, getGuild } = require('../bot.js');
+
+const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
+
+async function getAnnoucementChannel() {
+    const guild = await getGuild();
+    const channel = await client.guild.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
+
+    return channel;
+}
+
+async function awardRole(role, reason, ...targets) {
+    const announcementChannel = await getAnnoucementChannel();
+    let announcement = '';
+
+    for (const target of targets) {
+        await target.roles.add(role, reason);
     }
 
-    async getAnnoucementChannel() {
-        const channel = await this.client.guild.channels.fetch('794518074425475072');
-        
-        return channel;
+    if (targets.length == 1) {
+        const target = targets[0];
+
+        announcement += `${target} has been awarded the ${role} role!`;
+    }
+    else if (targets.length == 2) {
+        const target1 = targets[0];
+        const target2 = targets[1];
+
+        announcement += `${target1} and ${target2} have been awarded the ${role} role!`;
+    }
+    else {
+        const finalTarget = targets.pop();
+
+        announcement += `${targets.join(', ')}, and ${finalTarget} have been awarded the ${role} role!`;
     }
 
-    async awardRole(role, reason, ...targets) {
-        const announcementChannel = await this.getAnnoucementChannel();
-        let announcement = '';
+    announcement += `\n\`REASON: ${reason}\``;
 
-        for (const target of targets) {
-            await target.roles.add(role, reason);
-        }
-
-        if (targets.length == 1) {
-            const target = targets[0];
-            
-            announcement += `${target} has been awarded the ${role} role!`;
-        }
-        else if (targets.length == 2) {
-            const target1 = targets[0];
-            const target2 = targets[1];
-    
-            announcement += `${target1} and ${target2} have been awarded the ${role} role!`;
-        }
-        else {
-            const finalTarget = targets.pop();
-    
-            announcement += `${targets.join(', ')}, and ${finalTarget} have been awarded the ${role} role!`;
-        }    
-
-        announcement += `\n\`REASON: ${reason}\``;
-
-        await announcementChannel.send(announcement);
-    }    
+    await announcementChannel.send(announcement);
 }
 
 module.exports = {
-    RoleHandler: RoleHandler
+    getAnnoucementChannel: getAnnoucementChannel,
+    awardRole: awardRole
 }

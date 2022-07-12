@@ -1,9 +1,8 @@
-const { Permissions } = require('discord.js');
+const { TreasureHunt } = require("../../game/treasure_hunt");
 
 async function execute(interaction, args) {
-    const treasureHunt = interaction.client.treasureHunt;
-    const minutesTillDaily = treasureHunt.getMinutesTillNextDig(interaction.member.id);
-    const freeDigs = treasureHunt.getFreeDigs(interaction.member.id);
+    const minutesTillDaily = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
+    const freeDigs = TreasureHunt.getFreeDigs(interaction.member.id);
 
     await interaction.reply({ content: `**${Math.floor(minutesTillDaily / 60)} hour(s)** and **${minutesTillDaily % 60} minute(s)** till next dig\n**${freeDigs}** free digs remaining`, ephemeral: true });
 }
