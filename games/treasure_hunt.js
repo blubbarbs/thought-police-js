@@ -1,7 +1,8 @@
-const { randomInt, roll } = require('./util/funcs.js');
+const { randomInt, randomTile, randomTiles, roll } = require('../util/random.js');
 const { database } = require('../bot.js');
-const { Data, IDData } = require('./data/data');
-const { Grid } = require('./data/grid.js');
+const { Data } = require('../data/data.js');
+const { Data2L } = require('../data/double_layer_data.js');
+const { Grid } = require('../data/grid.js');
 
 const GRID_LENGTH = 10;
 const GRID_WIDTH = 10;
@@ -15,10 +16,12 @@ const MIN_POINTS_JACKPOT = 75;
 const MAX_POINTS_JACKPOT = 100;
 
 class TreasureHunt {
-    static remoteData = database.createHash('treasure_hunt');
-    static data = new Data('data', this.remoteData);
-    static playerData = new IDData('player_data', this.remoteData);
-    static grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);
+    static {
+        this.remoteData = database.createHash('treasure_hunt');
+        this.data = new Data('data', this.remoteData);
+        this.playerData = new Data2L('player_data', this.remoteData);
+        this.grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);
+    }
     
     static getMinutesTillNextDig(id) {
         const lastDigTime = this.playerData.get(id, 'last_dig_time');
@@ -43,6 +46,10 @@ class TreasureHunt {
         return this.getMinutesTillNextDig(id) > 0;
     }
     
+    static isJackpot() {
+        return this.data.get('jackpot') == true;
+    }
+
     static getBoardEmbed() {
         const embed = {
             color: '#ebf2a0',
@@ -67,20 +74,21 @@ class TreasureHunt {
     
     static async newGame() {
         this.grid.clear();
-        this.playerData.forEach((data) => data.set('last_dig_time', null));
+        this.playerData.clear('last_dig_time');
     
         if (roll(JACKPOT_PROBABILITY)) {
-            const [jackpotX, jackpotY] = this.grid.randomTile();
+            const [jackpotX, jackpotY] = randomTile(this.grid, null);
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
     
             this.grid.set(jackpotX, jackpotY, 'treasure', jackpotAmount);
             this.data.set('treasures_left', 1);
             this.data.set('treasure', jackpotAmount);
+            this.data.set('jackpot', true);
             this.grid.defaultTileDisplay = '🟨';
         }
         else {
             const numTreasures = randomInt(MAX_TREASURES, MIN_TREASURES);
-            const treasureTiles = this.grid.randomTiles(numTreasures);
+            const treasureTiles = randomTiles(this.grid, numTreasures);
             const totalTreasureAmount = randomInt(MAX_POINTS, MIN_POINTS);
             let treasurePool = totalTreasureAmount;
     
@@ -110,6 +118,10 @@ class TreasureHunt {
         await this.data.load();
         await this.playerData.load();
         await this.grid.load();
+
+        if (this.isJackpot()) {
+            this.grid.defaultDisplay = '🟨';
+        }
     }
         
     static async dig(id, x, y) {

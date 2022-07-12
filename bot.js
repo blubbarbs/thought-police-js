@@ -1,6 +1,6 @@
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
-const { Database } = require('./redis/database');
+const { Database } = require('./data/redis/database.js');
 
 const GUILD_ID = '209496826204782592';
 

@@ -1,6 +1,6 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../game/treasure_hunt');
-const { toAlphanumeric } = require('../../util/grid_coords');
+const { TreasureHunt } = require('../../games/treasure_hunt.js');
+const { toAlphanumeric } = require('../../util/grid_coords.js');
 
 async function execute(interaction, args) {
     treasureTiles = [];

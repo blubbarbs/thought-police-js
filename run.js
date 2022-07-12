@@ -1,9 +1,10 @@
 require('dotenv').config();
+process.env.TZ = 'America/Los_Angeles';
 
 const path = require('node:path');
-
 const { client, database } = require('./bot');
-const { TreasureHunt } = require('./game/treasure_hunt');
+const { Grid } = require('./data/grid');
+const { TreasureHunt } = require('./games/treasure_hunt');
 const { onInteract, reloadCommands }  = require('./handlers/command_handler.js');
 const { updateCurfew, haltCurfew } = require('./handlers/mudae_handler.js');
 
@@ -27,8 +28,6 @@ async function setupClient() {
     await reloadCommands(path.join(__dirname, 'commands'));
     client.login(process.env.TOKEN);
 }
-
-process.env.TZ = 'America/Los_Angeles';
 
 setupClient()
 .then(() => console.log('Loaded client.'))

@@ -1,31 +1,7 @@
 const { Collection } = require("discord.js");
+const { Data } = require("./data");
 
-class Data extends Collection {
-    constructor(key, database) {        
-        super();
-
-        this.key = key;
-        this.database = database;
-    }
-
-    async save() {
-        await this.database.set(this.key, Array.from(this.entries()));
-    }
-
-    async load() {
-        const data = await this.database.get(this.key);
-
-        if (data == null) return;
-
-        const entries = new Collection(data);
-
-        for (const [key, value] of entries) {
-            this.set(key, value);
-        }
-    }
-}
-
-class IDData extends Data {
+class Data2L extends Data {
     constructor(key, database) {
         super(key, database);
     }
@@ -57,11 +33,22 @@ class IDData extends Data {
         return key != null && super.has(key) && super.get(key).has(id);
     }
 
+    clear(key) {
+        if (key == null) {
+            super.clear();
+        }
+        else if (super.has(key)) {
+            super.get(key).clear();
+        }
+    }
+
     async save() {
         const data = [];
 
         for (const key of this.keys()) {
-            data.push([key, Array.from(super.get(key).entries())]);
+            const value = super.get(key);
+
+            data.push([key, Array.from(value.entries())]);
         }
     
         await this.database.set(this.key, data);
@@ -78,29 +65,6 @@ class IDData extends Data {
     }
 }
 
-class GridData extends IDData {
-    constructor(key, database, length, width) {
-        super(key, database);
-        
-        this.length = length;
-        this.width = width;
-    }
-
-    get(x, y, key) {
-        return super.get(`${x},${y}`, key);
-    }
-
-    set(x, y, key, value) {
-        super.set(`${x},${y}`, key, value);
-    }
-
-    has(x, y, key) {
-        return super.has(`${x},${y}`, key);
-    }
-}
-
-module.exports = {
-    Data: Data,
-    IDData: IDData,
-    GridData: GridData
+module.exports = { 
+    Data2L: Data2L 
 }

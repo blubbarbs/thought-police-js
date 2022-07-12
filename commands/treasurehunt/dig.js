@@ -1,6 +1,6 @@
 const { toAlphanumeric } = require('../../util/grid_coords'); 
 const { addPoints } = require('../../handlers/user_handler.js');
-const { TreasureHunt } = require('../../game/treasure_hunt');
+const { TreasureHunt } = require('../../games/treasure_hunt.js');
 
 async function isValidSpace(interaction, arg) {
     const [x, y] = arg;
