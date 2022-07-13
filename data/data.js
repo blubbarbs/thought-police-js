@@ -1,26 +1,58 @@
-const { Collection } = require("discord.js");
-
-class Data extends Collection {
+class Data {
     constructor(key, database) {        
-        super();
+        this.data = {};
         this.key = key;
         this.database = database;
     }
 
+    get(key) {
+        return this.data[key];
+    }
+
+    set(key, value) {
+        this.data[key] = value;
+    }
+
+    clear(key) {
+        if (this.key == null) {
+            delete this.data;
+        }
+        else {
+            delete this.data[key];
+        }
+    }
+
+    has(key) {
+        return this.data[key] != null;
+    }
+
+    keys() {
+        return Object.keys(this.data);
+    }
+
+    values() {
+        return Object.values(this.data);
+    }
+
+    entries() {
+        return Object.entries(this.data);
+    }
+
     async save() {
-        await this.database.set(this.key, Array.from(this.entries()));
+        const savedData = {};
+
+        Object.assign(savedData, this);
+
+        delete savedData.key;
+        delete savedData.database;
+
+        await this.database.set(this.key, savedData);
     }
 
     async load() {
-        const data = await this.database.get(this.key);
-
-        if (data == null) return;
-
-        const entries = new Collection(data);
-
-        for (const [key, value] of entries) {
-            this.set(key, value);
-        }
+        const loadedData = await this.database.get(this.key);
+        
+        Object.assign(this, loadedData);
     }
 }
 

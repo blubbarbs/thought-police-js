@@ -1,4 +1,4 @@
-const { randomInt, randomTile, randomTiles, roll } = require('../util/random.js');
+const { randomInt, roll } = require('../util/random.js');
 const { database } = require('../bot.js');
 const { Data } = require('../data/data.js');
 const { Data2L } = require('../data/double_layer_data.js');
@@ -71,13 +71,13 @@ class TreasureHunt {
     
         return embed;
     }
-    
+
     static async newGame() {
         this.grid.clear();
         this.playerData.clear('last_dig_time');
     
         if (roll(JACKPOT_PROBABILITY)) {
-            const [jackpotX, jackpotY] = randomTile(this.grid, null);
+            const [jackpotX, jackpotY] = this.grid.randomTile();
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
     
             this.grid.set(jackpotX, jackpotY, 'treasure', jackpotAmount);
@@ -88,7 +88,7 @@ class TreasureHunt {
         }
         else {
             const numTreasures = randomInt(MAX_TREASURES, MIN_TREASURES);
-            const treasureTiles = randomTiles(this.grid, numTreasures);
+            const treasureTiles = this.grid.randomTiles(numTreasures);
             const totalTreasureAmount = randomInt(MAX_POINTS, MIN_POINTS);
             let treasurePool = totalTreasureAmount;
     
@@ -118,10 +118,6 @@ class TreasureHunt {
         await this.data.load();
         await this.playerData.load();
         await this.grid.load();
-
-        if (this.isJackpot()) {
-            this.grid.defaultDisplay = '🟨';
-        }
     }
         
     static async dig(id, x, y) {
