@@ -77,8 +77,6 @@ class MudaeHandler {
             nextUpdateTime = curfew.start + DAY_IN_MS - currentTime + 1;
         }
     
-        console.log(nextUpdateTime);
-
         clearTimeout(this.activeTimeoutID);
         this.activeTimeoutID = setTimeout(async () => await this.updateCurfew(), nextUpdateTime);
     }

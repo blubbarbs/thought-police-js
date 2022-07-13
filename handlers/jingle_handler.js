@@ -24,17 +24,17 @@ class JingleHandler {
             adapterCreator: voiceChannel.guild.voiceAdapterCreator
         });
     
-        this.audioPlayer.once(AudioPlayerStatus.Idle, () => disconnect());       
-        this.currentConnection.subscribe(audioPlayer);
+        this.audioPlayer.once(AudioPlayerStatus.Idle, () => this.disconnect());       
+        this.currentConnection.subscribe(this.audioPlayer);
     }
     
     static async playJingle(voiceChannel, jingleURL) {
-        if (voiceChannel != null && this.currentVoiceChannel != voiceChannel) {
-            disconnect();
+        if (this.currentVoiceChannel != null && this.currentVoiceChannel != voiceChannel) {
+            this.disconnect();
         }
     
         if (this.currentConnection == null) {
-            connect(voiceChannel);
+            this.connect(voiceChannel);
         }
     
         const audioStreamReq = await request(jingleURL);
