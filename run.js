@@ -3,29 +3,29 @@ process.env.TZ = 'America/Los_Angeles';
 
 const path = require('node:path');
 const { client, database } = require('./bot');
-const { Grid } = require('./data/grid');
 const { TreasureHunt } = require('./games/treasure_hunt');
-const { onInteract, reloadCommands }  = require('./handlers/command_handler.js');
-const { updateCurfew, haltCurfew } = require('./handlers/mudae_handler.js');
+const { MudaeHandler } = require('./handlers/mudae_handler');
+const { CommandHandler } = require('./handlers/command_handler');
 
 async function setupClientEvents() {
     client.on('ready', async () => {
         await TreasureHunt.loadGame();
-        await updateCurfew();
+        await MudaeHandler.updateCurfew();
     });
     
     client.on('shardDisconnect', async () => {
         await database.disconnect();
-        await haltCurfew();
+        await MudaeHandler.haltCurfew();
     }); 
 
-    client.on('interactionCreate', onInteract);
+    client.on('interactionCreate', CommandHandler.onInteract);
 }
 
 async function setupClient() {
     await database.connect();         
     await setupClientEvents();
-    await reloadCommands(path.join(__dirname, 'commands'));
+
+    await CommandHandler.reloadCommands(path.join(__dirname, 'commands'));
     client.login(process.env.TOKEN);
 }
 

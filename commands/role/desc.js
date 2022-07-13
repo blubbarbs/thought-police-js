@@ -1,7 +1,8 @@
+const { RoleHandler } = require("../../handlers/role_handler");
+
 async function execute(interaction, args) {
-    const client = interaction.client;
     const role = args['role'];
-    const roleDesc = await client.roleData.get(role.id, 'description');
+    const roleDesc = await RoleHandler.getDescription(role.id);
 
     if (roleDesc == null) {
         await interaction.reply({ content: `There is no description available for this role.`, ephemeral: true });

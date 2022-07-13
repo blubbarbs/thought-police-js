@@ -1,4 +1,13 @@
-const { checks } = require("../../handlers/user_handler");
+const { PointsHandler } = require("../../handlers/points_handler");
+
+async function hasEnoughPoints(interaction, arg) {
+    const price = PointsHandler.rewards[arg].price;
+    const points = await PointsHandler.getPoints(interaction.member.id);
+
+    if (points < price) {
+        throw `You need ${price - points} more points to purchase this reward.`;
+    }
+}
 
 async function execute(interaction, args) {
     const reward = args['reward'];
@@ -20,7 +29,7 @@ module.exports = {
                 custom_tag: 'Custom Tag - 1000 points'
             },
             required: true,
-            checks: checks.hasEnoughPoints
+            checks: hasEnoughPoints
         }
     },
     execute: execute

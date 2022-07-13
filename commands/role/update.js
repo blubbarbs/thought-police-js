@@ -1,12 +1,11 @@
 const { Permissions } = require('discord.js');
+const { RoleHandler } = require('../../handlers/role_handler');
 
 async function execute(interaction, args) {
-    const client = interaction.client;
     const role = args['role'];
-    
-    delete args['role'];
+    const description = args['description'];
 
-    await client.roleData.sets(role.id, args);
+    await RoleHandler.updateDescription(role.id, description);
 
     await interaction.reply({ content: `Updated information for ${role.name}`, ephemeral: true });
 }

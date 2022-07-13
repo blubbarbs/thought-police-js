@@ -1,45 +1,59 @@
-const { client, getGuild } = require('../bot.js');
+const { client, database, getGuild } = require('../bot.js');
 
 const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
 
-async function getAnnoucementChannel() {
-    const guild = await getGuild();
-    const channel = await client.guild.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
-
-    return channel;
-}
-
-async function awardRole(role, reason, ...targets) {
-    const announcementChannel = await getAnnoucementChannel();
-    let announcement = '';
-
-    for (const target of targets) {
-        await target.roles.add(role, reason);
+class RoleHandler {
+    static {
+        this.remoteData = database.createNamespace('role_info');
     }
 
-    if (targets.length == 1) {
-        const target = targets[0];
-
-        announcement += `${target} has been awarded the ${role} role!`;
+    static async getDescription(id) {
+        const description = await this.remoteData.get(id, 'description');
+    
+        return description;
     }
-    else if (targets.length == 2) {
-        const target1 = targets[0];
-        const target2 = targets[1];
-
-        announcement += `${target1} and ${target2} have been awarded the ${role} role!`;
-    }
-    else {
-        const finalTarget = targets.pop();
-
-        announcement += `${targets.join(', ')}, and ${finalTarget} have been awarded the ${role} role!`;
+    
+    static async updateDescription(id, description) {
+        await this.remoteData.set(id, 'description', description);
     }
 
-    announcement += `\n\`REASON: ${reason}\``;
-
-    await announcementChannel.send(announcement);
+    static async getAnnoucementChannel() {
+        const channel = await guild.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
+    
+        return channel;
+    }
+    
+    static async awardRole(role, reason, ...targets) {
+        const announcementChannel = await this.getAnnoucementChannel();
+        let announcement = '';
+    
+        for (const target of targets) {
+            await target.roles.add(role, reason);
+        }
+    
+        if (targets.length == 1) {
+            const target = targets[0];
+    
+            announcement += `${target} has been awarded the ${role} role!`;
+        }
+        else if (targets.length == 2) {
+            const target1 = targets[0];
+            const target2 = targets[1];
+    
+            announcement += `${target1} and ${target2} have been awarded the ${role} role!`;
+        }
+        else {
+            const finalTarget = targets.pop();
+    
+            announcement += `${targets.join(', ')}, and ${finalTarget} have been awarded the ${role} role!`;
+        }
+    
+        announcement += `\n\`REASON: ${reason}\``;
+    
+        await announcementChannel.send(announcement);
+    }    
 }
 
 module.exports = {
-    getAnnoucementChannel: getAnnoucementChannel,
-    awardRole: awardRole
+    RoleHandler: RoleHandler
 }

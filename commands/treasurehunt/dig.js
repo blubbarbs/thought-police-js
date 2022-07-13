@@ -1,6 +1,6 @@
 const { toAlphanumeric } = require('../../util/grid_coords'); 
-const { addPoints } = require('../../handlers/user_handler.js');
 const { TreasureHunt } = require('../../games/treasure_hunt.js');
+const { PointsHandler } = require('../../handlers/points_handler');
 
 async function isValidSpace(interaction, arg) {
     const [x, y] = arg;
@@ -39,7 +39,7 @@ async function execute(interaction, args) {
     if (reward != null) {
         const treasuresLeft = TreasureHunt.data.get('treasures_left');
 
-        await addPoints(interaction.member.id, reward);
+        await PointsHandler.addPoints(interaction.member.id, reward);
         await interaction.reply({ content: `${interaction.member} has found ${reward} points at ${toAlphanumeric(x, y)}. Congrats!`, embeds: [TreasureHunt.getBoardEmbed()] });
 
         if (treasuresLeft == 0) {

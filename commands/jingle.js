@@ -1,4 +1,5 @@
 const { request } = require('undici');
+const { JingleHandler } = require('../handlers/jingle_handler');
 
 async function isMemberConnectedToVoice(interaction) {
     if (interaction.member.voice.channel == null) {
@@ -26,7 +27,7 @@ async function execute(interaction, args) {
     const voiceChannel = interaction.member.voice.channel;
     const url = args['url'];
 
-    await interaction.client.jingleHandler.playJingle(voiceChannel, url);
+    await JingleHandler.playJingle(voiceChannel, url);
     await interaction.reply({ content: 'Done!', ephemeral: true });
 }
 

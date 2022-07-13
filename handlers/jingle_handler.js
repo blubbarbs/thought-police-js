@@ -1,47 +1,49 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel } = require('@discordjs/voice');
 const { request } = require('undici');
 
-const audioPlayer = createAudioPlayer();
-let currentConnection = null;
-let currentVoiceChannel = null;
-
-function disconnect() {
-    audioPlayer.stop();
-    currentConnection.destroy();
-
-    voiceChannel = null;
-    currentConnection = null;
-}
-
-function connect(voiceChannel) {
-    currentVoiceChannel = voiceChannel;
-    currentConnection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: voiceChannel.guild.id,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator
-    });
-
-    audioPlayer.once(AudioPlayerStatus.Idle, () => disconnect());       
-    currentConnection.subscribe(audioPlayer);
-}
-
-async function playJingle(voiceChannel, jingleURL) {
-    if (voiceChannel != null && currentVoiceChannel != voiceChannel) {
-        disconnect();
+class JingleHandler {
+    static {
+        this.audioPlayer = createAudioPlayer();
+        this.currentConnection = null;
+        this.currentVoiceChannel = null;        
     }
 
-    if (currentConnection == null) {
-        connect(voiceChannel);
+    static disconnect() {
+        this.audioPlayer.stop();
+        this.currentConnection.destroy();
+    
+        this.voiceChannel = null;
+        this.currentConnection = null;
     }
-
-    const audioStreamReq = await request(jingleURL);
-    const audioResource = createAudioResource(audioStreamReq.body);
-
-    audioPlayer.play(audioResource);
+    
+    static connect(voiceChannel) {
+        this.currentVoiceChannel = voiceChannel;
+        this.currentConnection = joinVoiceChannel({
+            channelId: voiceChannel.id,
+            guildId: voiceChannel.guild.id,
+            adapterCreator: voiceChannel.guild.voiceAdapterCreator
+        });
+    
+        this.audioPlayer.once(AudioPlayerStatus.Idle, () => disconnect());       
+        this.currentConnection.subscribe(audioPlayer);
+    }
+    
+    static async playJingle(voiceChannel, jingleURL) {
+        if (voiceChannel != null && this.currentVoiceChannel != voiceChannel) {
+            disconnect();
+        }
+    
+        if (this.currentConnection == null) {
+            connect(voiceChannel);
+        }
+    
+        const audioStreamReq = await request(jingleURL);
+        const audioResource = createAudioResource(audioStreamReq.body);
+    
+        this.audioPlayer.play(audioResource);
+    }    
 }
 
 module.exports = {
-    connect: connect,
-    disconnect: disconnect,
-    playJingle: playJingle
+    JingleHandler: JingleHandler
 }

@@ -1,13 +1,12 @@
 const { Permissions } = require('discord.js');
-const { awardRole } = require('../../handlers/role_handler');
+const { RoleHandler } = require('../../handlers/role_handler');
 
 async function execute(interaction, args) {
-    const roleHandler = interaction.client.roleHandler;
     const role = args['role'];
+    const targets = args['target'];
     const reason = args['reason'];
-    const targets = args['targets'];
 
-    await awardRole(role, reason, target);
+    await RoleHandler.awardRole(role, reason, targets);
 
     await interaction.reply({ content: `All roles have been awarded.`, ephemeral: true });
 }
