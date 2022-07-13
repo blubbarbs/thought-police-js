@@ -22,13 +22,13 @@ async function isFreeSpace(interaction, arg) {
 }
 
 async function canDig(interaction, args) {
-    if (TreasureHunt.hasUsedDailyDig(interaction.member.id) && TreasureHunt.getFreeDigs(interaction.member.id) == 0) {
-        const minutesTillDailyDig = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
-        const hours = Math.floor(minutesTillDailyDig / 60);
-        const minutes = minutesTillDailyDig % 60;
+    if (!TreasureHunt.hasUsedDailyDig(interaction.member.id) || TreasureHunt.getFreeDigs(interaction.member.id) > 0) return;
+    
+    const minutesTillDailyDig = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
+    const hours = Math.floor(minutesTillDailyDig / 60);
+    const minutes = minutesTillDailyDig % 60;
 
-        throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in **${hours} hour(s)** and **${minutes} minutes**.`;
-    }
+    throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in **${hours} hour(s)** and **${minutes} minutes**.`;
 }
 
 async function execute(interaction, args) {

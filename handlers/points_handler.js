@@ -4,7 +4,7 @@ const LEADERBOARD_CHANNEL_ID = '987990655601102899';
 
 class PointsHandler {
     static {
-        this.remoteData = database.createNamespace('user_info');
+        this.remoteData = database.getNamespace('user_info');
         this.rewards = {
             change_nickname: {
                 price: 50,
@@ -25,13 +25,13 @@ class PointsHandler {
     }
     
     static async getPoints(id) {
-        const points = await this.remoteData.get(id, 'points');
+        const points = await this.remoteData.get('points', id);
     
         return points || 0;
     }
     
     static async setPoints(id, points, shouldUpdateLeaderboard) {
-        await this.remoteData.set(id, 'points', points);
+        await this.remoteData.set('points', id, points);
     
         if (shouldUpdateLeaderboard == null || shouldUpdateLeaderboard == true) {
             await this.updateLeaderboard();
@@ -55,7 +55,7 @@ class PointsHandler {
     }
     
     static async getLeaderboard(end, start) {
-        const scores = await this.remoteData.get(null, 'points');
+        const scores = await this.remoteData.get('points');        
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;

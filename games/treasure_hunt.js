@@ -17,14 +17,14 @@ const MAX_POINTS_JACKPOT = 100;
 
 class TreasureHunt {
     static {
-        this.remoteData = database.createHash('treasure_hunt');
+        this.remoteData = database.getHash('treasure_hunt');
         this.data = new Data('data', this.remoteData);
         this.playerData = new Data2L('player_data', this.remoteData);
         this.grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);
     }
     
     static getMinutesTillNextDig(id) {
-        const lastDigTime = this.playerData.get(id, 'last_dig_time');
+        const lastDigTime = this.playerData.get('last_dig_time', id);
     
         if (lastDigTime != null) {
             const msDifference = Date.now() - lastDigTime;
@@ -39,7 +39,7 @@ class TreasureHunt {
     }
     
     static getFreeDigs(id) {
-        return this.playerData.get(id, 'free_digs') || 0;
+        return this.playerData.get('free_digs', id) || 0;
     }
     
     static hasUsedDailyDig(id) {
@@ -80,7 +80,7 @@ class TreasureHunt {
             const [jackpotX, jackpotY] = this.grid.randomTile();
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
     
-            this.grid.set(jackpotX, jackpotY, 'treasure', jackpotAmount);
+            this.grid.set('treasure', jackpotX, jackpotY, jackpotAmount);
             this.data.set('treasures_left', 1);
             this.data.set('treasure', jackpotAmount);
             this.data.set('jackpot', true);
@@ -97,12 +97,12 @@ class TreasureHunt {
                 const treasureAmount = randomInt(Math.floor(treasurePool * .8), Math.ceil(treasurePool * .2));
                 treasurePool -= treasureAmount;
     
-                this.grid.set(x, y, 'treasure', treasureAmount);
+                this.grid.set('treasure', x, y, treasureAmount);
             }
     
             const [finalX, finalY] = treasureTiles[treasureTiles.length - 1];
     
-            this.grid.set(finalX, finalY, 'treasure', treasurePool);
+            this.grid.set('treasure', finalX, finalY, treasurePool);
             this.data.set('treasure', totalTreasureAmount);
             this.data.set('treasures_left', numTreasures);
         }
@@ -121,7 +121,7 @@ class TreasureHunt {
     }
         
     static async dig(id, x, y) {
-        const treasure = this.grid.get(x, y, 'treasure');
+        const treasure = this.grid.get('treasure', x, y);
     
         if (treasure != null) {
             this.grid.setDisplay(x, y, '⭕');
@@ -132,13 +132,13 @@ class TreasureHunt {
             this.grid.setDisplay(x, y, '❌');
         }
     
-        this.grid.set(x, y, 'is_dug', true);
+        this.grid.set('is_dug', x, y, true);
     
         if (this.hasUsedDailyDig(id)) {
-            this.playerData.set(id, 'free_digs', this.getFreeDigs(id) - 1);
+            this.playerData.set('free_digs', id, this.getFreeDigs(id) - 1);
         }
         else {
-            this.playerData.set(id, 'last_dig_time', Date.now());
+            this.playerData.set('last_dig_time', id, Date.now());
         }
     
         await this.saveGame();

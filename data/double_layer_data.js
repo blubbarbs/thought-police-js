@@ -5,27 +5,16 @@ class Data2L extends Data {
         super(key, database);
     }
 
-    get(id, key) {
-        if (key == null) {
-            const data = {};
-
-            for (const key of this.keys()) {
-                data[key] = super.get(key)[id];
-            }
-
-            return data;
-        }
-        else {
-            return id == null ? super.get(key) : super.get(key)?.[id];
-        }
+    get(key1, key2) {
+        return key2 == null ? this.data[key1] : this.data[key1]?.[key2];
     }
 
-    set(id, key, value) {
-        if (!this.has(key)) {
-            super.set(key, {});
+    set(key1, key2, value) {
+        if (!this.has(key1)) {
+            this.data[key1] = {};
         }
 
-        super.get(key)[id] = value;
+        this.data[key1][key2] = value;
     }
 }
 

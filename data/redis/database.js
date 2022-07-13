@@ -5,14 +5,24 @@ class Database {
     constructor(redis) {
         this.redis = redis;
         this.intervalID = null;
+        this.namespaces = {};
+        this.hashes = {};
     }
     
-    createNamespace(namespace) {
-        return new NamespaceWrapper(this, namespace);
+    getNamespace(namespace) {
+        if (!(namespace in this.namespaces)) {
+            this.namespaces[namespace] = new NamespaceWrapper(this, namespace);
+        }
+
+        return this.namespaces[namespace];
     }
 
-    createHash(hash) {
-        return new HashWrapper(this, hash);
+    getHash(hash) {
+        if (!(hash in this.hashes)) {
+            this.hashes[hash] = new HashWrapper(this, hash);
+        }
+
+        return this.hashes[hash];    
     }
 
     async connect() {

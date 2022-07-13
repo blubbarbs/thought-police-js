@@ -11,20 +11,20 @@ class Grid extends Data2L {
         this.defaultDisplay = defaultDisplay;
     }
 
-    get(x, y, key) {
-        return super.get(`${x},${y}`, key);
+    get(key, x, y) {
+        return super.get(key, `${x},${y}`);
     }
 
     getDisplay(x, y) {
-        return this.get(x, y, 'display') || this.defaultDisplay;
+        return this.get('display', x, y) || this.defaultDisplay;
     }
 
-    set(x, y, key, value) {
-        super.set(`${x},${y}`, key, value);
+    set(key, x, y, value) {
+        super.set(key, `${x},${y}`, value);
     }
 
     setDisplay(x, y, display) {
-        this.set(x, y, 'display', display);
+        this.set('display', x, y, display);
     }
 
     findTiles(predicate) {

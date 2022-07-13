@@ -4,46 +4,39 @@ class NamespaceWrapper {
         this.namespace = namespace;
     }
 
-    async keys() {
-        const keys = [];
-        const offset = namespace.length + 1;
-    
-        for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*` })) {
-            keys.push(key.substring(offset));
+    async keys(key) {    
+        if (key == null) {
+            const keys = [];
+            const offset = namespace.length + 1;
+
+            for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*` })) {
+                keys.push(key.substring(offset));
+            }
+
+            return keys;
         }
+        else {
+            return this.database.hashKeys(key);
+        }    
+    }
+
+    async get(key1, key2) {
+        const hash = `${this.namespace}:${key1}`;
+
+        return key2 == null ? this.database.hashGet(hash) : this.database.hashGet(hash, key2);
+    }
+
+    async set(key1, key2, value) {
+        const hash = `${this.namespace}:${key1}`;
     
-        return keys;
+        return this.database.hashSet(hash, key2, value);
     }
 
-    async get(id, ...keys) {
-        const hashes = keys.map((key) => `${this.namespace}:${key}`);
-        const promises = id != null ? hashes.map((hash) => this.database.hashGet(hash, id)) : hashes.map((hash) => this.database.hashGet(hash));
-        const data = await Promise.all(promises);
-        const dataMap = {};
-
-        keys.forEach((key, i) => dataMap[key] = data[i]);
-
-        return keys.length == 1 ? dataMap[keys[0]] : dataMap;
-    }
-
-    async set(id, key, value) {
+    async sets(key, data) {
         const hash = `${this.namespace}:${key}`;
-    
-        await this.database.hashSet(hash, id, value);
+        
+        return this.database.hashSets(hash, data);
     }
-
-    async sets(namespace, id, data) {
-        const promises = [];
-    
-        for (const [key, value] of Object.entries(data)) {
-            const hash = `${namespace}:${key}`;
-    
-            promises.push(this.database.hashSet(hash, key, value));
-        }
-    
-        await Promise.all(promises);
-    }
-
 }
 
 module.exports = {
