@@ -1,11 +1,6 @@
 const { request } = require('undici');
 const { JingleHandler } = require('../handlers/jingle_handler');
-
-async function isMemberConnectedToVoice(interaction) {
-    if (interaction.member.voice.channel == null) {
-        throw 'You are not connected to a voice channel.'
-    }
-}
+const { assert } = require('../util/checks');
 
 async function isAudioURL(interaction, arg) {
     let contentType = null;
@@ -41,6 +36,6 @@ module.exports = {
             checks: isAudioURL
         }
     },
-    checks: isMemberConnectedToVoice,
+    checks: assert((interaction) => interaction.member.voice.channel != null, 'You are not connected to a voice channel.'),
     execute: execute
 }

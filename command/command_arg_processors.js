@@ -4,7 +4,7 @@ const userRegex = /<@!?([0-9]+)>/;
 const channelRegex = /<#([0-9]+)>/;
 const roleRegex = /<@&([0-9]+)>/;
 
-async function parseMember(interaction, arg) {
+async function parseMember(arg, interaction) {
     const match = arg.match(userRegex);
     
     if (match != null) {
@@ -24,13 +24,13 @@ async function parseMember(interaction, arg) {
     }
 }
 
-async function parseUser(interaction, arg) {
-    const member = await parseMember(interaction, argName);
+async function parseUser(arg, interaction) {
+    const member = await parseMember(arg, interaction);
 
     return member.user;
 }
 
-async function parseChannel(interaction, arg) {
+async function parseChannel(arg, interaction) {
     const match = arg.match(channelRegex);
     
     if (match != null) {
@@ -50,7 +50,7 @@ async function parseChannel(interaction, arg) {
     }
 }
 
-async function parseRole(interaction, arg) {
+async function parseRole(arg, interaction) {
     const match = arg.match(roleRegex);
     
     if (match != null) {
@@ -70,26 +70,26 @@ async function parseRole(interaction, arg) {
     }
 }
 
-async function parseMentionable(interaction, arg) {
+async function parseMentionable(arg, interaction) {
     const userMatch = arg.match(userRegex);
     const channelMatch = arg.match(channelRegex);
     const roleMatch = arg.match(roleRegex);
 
     if (userMatch != null) {
-        return parseUser(interaction, arg);
+        return parseUser(arg, interaction);
     }
     else if (channelMatch != null) {
-        return parseChannel(interaction, arg);
+        return parseChannel(arg, interaction);
     }
     else if (roleMatch != null) {
-        return parseRole(interaction, arg);
+        return parseRole(arg, interaction);
     }
     else {
         throw `"${arg}" is not a valid mentionable.`;
     }
 }
 
-async function parseInteger(interaction, arg) {
+async function parseInteger(arg) {
     if (Number.isSafeInteger(arg)) {
         return +arg;
     }
@@ -98,7 +98,7 @@ async function parseInteger(interaction, arg) {
     }
 }
 
-async function parseNumber(interaction, arg) {
+async function parseNumber(arg) {
     if (!isNaN(arg)) {
         return +arg;
     }
@@ -107,7 +107,7 @@ async function parseNumber(interaction, arg) {
     }
 }
 
-async function parseBoolean(interaction, arg) {
+async function parseBoolean(arg) {
     arg = arg.toLowerCase();
 
     if (arg == 't' || arg == 'true' || arg == 'yes' || arg == 'y') {
@@ -121,7 +121,7 @@ async function parseBoolean(interaction, arg) {
     }
 }
 
-async function parseGridCoordinates(interaction, arg) {
+async function parseGridCoordinates(arg) {
     const coords = toCoordinates(arg);
 
     if (coords == null) {
@@ -149,7 +149,7 @@ async function processList(interaction, argName, parser) {
     const processedArgs = [];
 
     for (const arg of splitArgs) {
-        const parsedArg = await parser(interaction, arg);
+        const parsedArg = await parser(arg, interaction);
 
         processedArgs.push(parsedArg);
     }
@@ -176,6 +176,6 @@ module.exports = {
     number_list: (interaction, argName) => processList(interaction, argName, parseNumber),
     boolean: (interaction, argName) => interaction.options.getBoolean(argName),
     boolean_list: (interaction, argName) => processList(interaction, argName, parseBoolean),
-    grid_coordinates: (interaction, argName) => parseGridCoordinates(interaction, interaction.options.getString(argName)),
+    grid_coordinates: (interaction, argName) => parseGridCoordinates(interaction.options.getString(argName)),
     grid_coordinates_list: (interaction, argName) => processList(interaction, argName, parseGridCoordinates)
 }

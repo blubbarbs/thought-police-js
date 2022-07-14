@@ -30,12 +30,10 @@ class Grid extends Data2L {
     findTiles(predicate) {
         const tiles = [];
 
-        for (let y = 0; y < this.width; y++) {
-            for (let x = 0; x < this.length; x++) {
-                if (predicate == null || predicate(x, y)) {                    
-                    tiles.push([x, y]);
-                }                
-            }
+        for (const [x, y] of this.iterator()) {
+            if (predicate == null || predicate(x, y)) {                    
+                tiles.push([x, y]);
+            }                
         }
 
         return tiles;
@@ -81,6 +79,14 @@ class Grid extends Data2L {
         }
     
         return str;
+    }
+
+    *iterator() {
+        for (let y = 0; y < this.width; y++) {
+            for (let x = 0; x < this.length; x++) {
+                yield [x, y];
+            }
+        }
     }
 }
 

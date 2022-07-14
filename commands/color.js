@@ -1,17 +1,14 @@
 const { Permissions } = require('discord.js');
+const { getGuild } = require('../bot');
+const { assert } = require('../util/checks');
+
 const hexRegex = /#[0-9A-Fa-f]{6}/;
 
 const ROLE_OFFSET = 7;
 
-async function isValidHexColor(interaction, arg) {
-    if (arg.match(hexRegex) == null) {
-        throw 'That is not a valid hex color. A valid hex color looks like this: "#A123CD".';
-    }
-}
-
 async function colorMember(member, hexColor) {
     await decolorMember(member);
-    const colorRole = await makeColorRole(member.guild, hexColor);
+    const colorRole = await makeColorRole(hexColor);
     await member.roles.add(colorRole);
 }
 
@@ -26,7 +23,8 @@ async function decolorMember(member) {
 	}
 }
 
-async function makeColorRole(guild, hexColor) {
+async function makeColorRole(hexColor) {
+    const guild = await getGuild();
 	const roles = Array.from(guild.roles.cache.values());
     
     for (const role of guild.roles.cache.values()) {
@@ -61,7 +59,7 @@ module.exports = {
             type: 'string',
             description: "Hex color you want to change to.",
             required: true,
-            checks: isValidHexColor
+            checks: assert((_, arg) => arg.match(hexRegex) != null, 'That is not a valid color hex.')
         },
         target: {
             type: 'member',
