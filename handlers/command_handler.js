@@ -9,27 +9,6 @@ const { Command } = require('../command/command.js');
 const restAPI = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 class CommandHandler {
-    static async onInteract(interaction) {
-        if (!interaction.isCommand()) {
-            return;
-        }
-
-        try {
-            const command = CommandHandler.findCommand(interaction.commandName, interaction.options._group, interaction.options._subcommand);
-            
-            await command.execute(interaction);
-        }
-        catch (e) {
-            if (typeof e == 'string') {
-                await interaction.reply({ content: `\`\`\`${e}\`\`\``, ephemeral: true });
-            }
-            else {
-                await interaction.reply({ content: '```There has been an unexpected error while executing this command.```', ephemeral: true });
-                console.error(e);
-            }
-        }
-    }
-    
     static findCommand(commandName, subcommandGroup, subcommandName) {
         let command = client.commands.get(commandName);
     

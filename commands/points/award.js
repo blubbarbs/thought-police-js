@@ -2,26 +2,27 @@ const { Permissions } = require('discord.js');
 const { PointsHandler } = require('../../handlers/points_handler');
 
 async function execute(interaction, args) {
-    const points = args['points'];
+    const pointPrize = args['points'];
     const first = args['first'];
     const second = args['second'];
     const third = args['third'];
+    const allDeltaPoints = {};
 
     await interaction.deferReply({ ephemeral: true });
 
     for (const member of first) {
-        await PointsHandler.addPoints(member.id, points, false);
+        allDeltaPoints[member.id] = pointPrize;
     }
 
     for (const member of second) {
-        await PointsHandler.addPoints(member.id, Math.round(points * .6), false);
+        allDeltaPoints[member.id] = Math.round(pointPrize * .6);
     }
 
     for (const member of third) {
-        await PointsHandler.addPoints(member.id, Math.round(points * .3), false);
+        allDeltaPoints[member.id] = Math.round(pointPrize * .3);
     }
 
-    await PointsHandler.updateLeaderboard();
+    await PointsHandler.addAllPoints(allDeltaPoints);
     await interaction.editReply('Gave points to all listed members.');
 }
 

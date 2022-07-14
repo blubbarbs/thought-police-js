@@ -17,7 +17,7 @@ class Database {
         return this.namespaces[namespace];
     }
 
-    getHash(hash) {
+    getHashspace(hash) {
         if (!(hash in this.hashes)) {
             this.hashes[hash] = new HashWrapper(this, hash);
         }
@@ -53,16 +53,33 @@ class Database {
         return keys;
     }
         
-    async get(...keys) {
+    async get(key) {
+        const data = await this.redis.get(key);
+    
+        return JSON.parse(data);
+    }
+    
+    async gets(...keys) {
         const data = await this.redis.mGet(keys);
         const dataMap = {};
         
         keys.forEach((k, i) => dataMap[k] = JSON.parse(data[i]));
     
-        return keys.length == 1 ? dataMap[keys[0]] : dataMap;
+        return dataMap;
     }
-    
-    async hashGet(hash, ...keys) {
+
+    async hashGet(hash, key) {
+        if (key == null) {
+            return this.hashGets(hash);
+        }
+        else {
+            const data = await this.redis.hGet(hash, key);
+
+            return JSON.parse(data);
+        }        
+    }
+
+    async hashGets(hash, ...keys) {
         const dataMap = {};
 
         if (keys.length > 0) {
@@ -78,9 +95,9 @@ class Database {
             }
         }
         
-        return keys.length == 1 ? dataMap[keys[0]] : dataMap;
+        return dataMap;
     }
-        
+
     async set(key, value) {
         await this.redis.set(key, JSON.stringify(value));
     }

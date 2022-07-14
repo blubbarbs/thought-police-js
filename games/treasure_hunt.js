@@ -17,7 +17,7 @@ const MAX_POINTS_JACKPOT = 100;
 
 class TreasureHunt {
     static {
-        this.remoteData = database.getHash('treasure_hunt');
+        this.remoteData = database.getHashspace('treasure_hunt');
         this.gameData = new Data('data', this.remoteData);
         this.playerData = new Data2L('player_data', this.remoteData);
         this.grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);

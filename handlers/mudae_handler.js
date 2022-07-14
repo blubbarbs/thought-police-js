@@ -57,23 +57,17 @@ class MudaeHandler {
     
         if (currentTime < curfew.start) {
             await this.applyCurfew(false);
-    
-            console.log('Before curfew');
-    
+        
             nextUpdateTime = curfew.start - currentTime + 1;
         }
         else if (currentTime < curfew.end) {
             await this.applyCurfew(true);
-    
-            console.log('During curfew');
-    
+        
             nextUpdateTime = curfew.end - currentTime + 1;
         }
         else {
             await this.applyCurfew(false);
-    
-            console.log('After curfew');
-    
+        
             nextUpdateTime = curfew.start + DAY_IN_MS - currentTime + 1;
         }
     

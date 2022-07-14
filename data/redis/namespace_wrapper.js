@@ -4,6 +4,10 @@ class NamespaceWrapper {
         this.toplevel = toplevel;
     }
 
+    hash(namespace) {
+        return `${this.toplevel}:${namespace}`;
+    }
+
     async keys(namespace) {    
         if (namespace == null) {
             const keys = [];
@@ -16,31 +20,27 @@ class NamespaceWrapper {
             return keys;
         }
         else {
-            const hash = `${this.toplevel}:${namespace}`;
-
-            return this.database.hashKeys(hash);
+            return this.database.hashKeys(this.hash(namespace));
         }    
     }
 
-    async get(namespace, ...keys) {
-        const hash = `${this.toplevel}:${namespace}`;
-
-        return key2 == null ? this.database.hashGet(hash) : this.database.hashGet(hash, keys);
+    async get(namespace, key) {
+        return this.database.hashGet(this.hash(namespace), key);
     }
 
-    async set(namespace, key, value) {
-        const hash = `${this.toplevel}:${namespace}`;
-    
-        return this.database.hashSet(hash, key, value);
+    async gets(namespace, ...keys) {
+        return this.database.hashGets(this.hash(namespace), ...keys);
+    }
+
+    async set(namespace, key, value) {    
+        return this.database.hashSet(this.hash(namespace), key, value);
     }
 
     async sets(allData) {
         const promises = []; 
         
-        for (const [namespace, data] of Object.entries(allData)) {
-            const hash = `${this.toplevel}:${namespace}`;
-        
-            promises.push(this.database.hashSets(hash, data));
+        for (const [namespace, data] of Object.entries(allData)) {        
+            promises.push(this.database.hashSets(this.hash(namespace), data));
         }
 
         await Promise.all(promises);

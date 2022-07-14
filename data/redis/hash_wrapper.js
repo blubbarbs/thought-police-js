@@ -8,8 +8,12 @@ class HashWrapper {
         return this.database.hashKeys(this.hash);
     }
 
-    async get(...keys) {        
-        return this.database.hashGet(this.hash, ...keys);
+    async get(key) {
+        return this.database.hashGet(this.hash, key);
+    }
+
+    async gets(...keys) {        
+        return this.database.hashGets(this.hash, ...keys);
     }
 
     async set(key, value) {

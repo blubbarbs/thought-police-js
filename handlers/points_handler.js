@@ -24,21 +24,29 @@ class PointsHandler {
         }
     }
     
-    static async getPoints(id) {
-        const points = await this.remoteData.get('points', id);
+    static async getPoints(...ids) {
+        const points = await this.remoteData.get('points', ...ids);
     
-        return points || 0;
+        return points;
     }
     
-    static async setPoints(id, points, shouldUpdateLeaderboard) {
+    static async setPoints(id, points, shouldUpdateLeaderboard = true) {
         await this.remoteData.set('points', id, points);
     
-        if (shouldUpdateLeaderboard == null || shouldUpdateLeaderboard == true) {
+        if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
     }
     
-    static async addPoints(id, deltaPoints, shouldUpdateLeaderboard) {
+    static async setAllPoints(data, shouldUpdateLeaderboard = true) {
+        await this.remoteData.sets({ points: data });
+        
+        if (shouldUpdateLeaderboard) {
+            await this.updateLeaderboard();
+        }
+    }
+
+    static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
         const currentPoints = await this.getPoints(id);
         const newPoints = currentPoints + deltaPoints;
     
@@ -46,6 +54,17 @@ class PointsHandler {
     
         return newPoints;
     }
+    
+    static async addAllPoints(data, shouldUpdateLeaderboard) {
+        const allIDS = Array.from(Object.keys(data));
+        const allPoints = await this.remoteData.gets('points', ...allIDS);
+
+        for (const [id, deltaPoints] of Object.entries(data)) {            
+            allPoints[id] = +allPoints[id] + deltaPoints;
+        }
+
+        await this.setAllPoints(allPoints, shouldUpdateLeaderboard);
+    }    
     
     static async getLeaderboardChannel() {
         const guild = await getGuild();
