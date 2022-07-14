@@ -1,0 +1,4 @@
+- Possibly make data classes perfectly mirror database they are attached to, however that would require some sort of caching so that only data
+that is the "difference" between the current data gets saved. Possibly a "changes" dictionary that gets updated whenever anything
+gets set, and when a save happens it only reads off that dictionary. NOT A GUARANTEE, as getting multiple keys is slow as balls and having only one load/store
+although it's a lot of data is faster

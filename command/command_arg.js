@@ -89,6 +89,10 @@ class CommandArgument {
         const processor = processors[this.type] || processors['string'];
         const processedArgument = await processor(interaction, this.name);
 
+        if (processedArgument == null) {
+            return null;
+        }
+
         if (!interaction.member.permissions.has(this.permissions)) {
             throw `You do not have the permission to use the "${this.name}" argument.`;
         }

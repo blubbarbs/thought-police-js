@@ -18,7 +18,7 @@ const MAX_POINTS_JACKPOT = 100;
 class TreasureHunt {
     static {
         this.remoteData = database.getHash('treasure_hunt');
-        this.data = new Data('data', this.remoteData);
+        this.gameData = new Data('data', this.remoteData);
         this.playerData = new Data2L('player_data', this.remoteData);
         this.grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);
     }
@@ -47,7 +47,7 @@ class TreasureHunt {
     }
     
     static isJackpot() {
-        return this.data.get('jackpot') == true;
+        return this.gameData.get('jackpot') == true;
     }
 
     static getBoardEmbed() {
@@ -57,12 +57,12 @@ class TreasureHunt {
             fields: [
                 {
                     name: 'Treasure Available',
-                    value: `${this.data.get('treasure')} points`,
+                    value: `${this.gameData.get('treasure')} points`,
                     inline: false
                 },
                 {
                     name: 'Treasure Chests Left',
-                    value: `${this.data.get('treasures_left')} chest(s)`,
+                    value: `${this.gameData.get('treasures_left')} chest(s)`,
                     inline: false
                 }
             ],
@@ -81,9 +81,9 @@ class TreasureHunt {
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
     
             this.grid.set('treasure', jackpotX, jackpotY, jackpotAmount);
-            this.data.set('treasures_left', 1);
-            this.data.set('treasure', jackpotAmount);
-            this.data.set('jackpot', true);
+            this.gameData.set('treasures_left', 1);
+            this.gameData.set('treasure', jackpotAmount);
+            this.gameData.set('jackpot', true);
             this.grid.defaultTileDisplay = '🟨';
         }
         else {
@@ -103,19 +103,19 @@ class TreasureHunt {
             const [finalX, finalY] = treasureTiles[treasureTiles.length - 1];
     
             this.grid.set('treasure', finalX, finalY, treasurePool);
-            this.data.set('treasure', totalTreasureAmount);
-            this.data.set('treasures_left', numTreasures);
+            this.gameData.set('treasure', totalTreasureAmount);
+            this.gameData.set('treasures_left', numTreasures);
         }
     }    
     
     static async saveGame() {
-        await this.data.save();
+        await this.gameData.save();
         await this.playerData.save();
         await this.grid.save();
     }
     
     static async loadGame() {
-        await this.data.load();
+        await this.gameData.load();
         await this.playerData.load();
         await this.grid.load();
     }
@@ -125,8 +125,8 @@ class TreasureHunt {
     
         if (treasure != null) {
             this.grid.setDisplay(x, y, '⭕');
-            this.data.set('treasure', this.data.get('treasure') - treasure);
-            this.data.set('treasures_left', this.data.get('treasures_left') - 1);
+            this.gameData.set('treasure', this.gameData.get('treasure') - treasure);
+            this.gameData.set('treasures_left', this.gameData.get('treasures_left') - 1);
         }
         else {
             this.grid.setDisplay(x, y, '❌');
