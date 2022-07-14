@@ -1,41 +1,49 @@
 class NamespaceWrapper {
-    constructor(database, namespace) {
+    constructor(database, toplevel) {
         this.database = database;
-        this.namespace = namespace;
+        this.toplevel = toplevel;
     }
 
-    async keys(key) {    
-        if (key == null) {
+    async keys(namespace) {    
+        if (namespace == null) {
             const keys = [];
-            const offset = namespace.length + 1;
+            const offset = this.toplevel.length + 1;
 
-            for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*` })) {
+            for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.toplevel}:*` })) {
                 keys.push(key.substring(offset));
             }
 
             return keys;
         }
         else {
-            return this.database.hashKeys(key);
+            const hash = `${this.toplevel}:${namespace}`;
+
+            return this.database.hashKeys(hash);
         }    
     }
 
-    async get(key1, key2) {
-        const hash = `${this.namespace}:${key1}`;
+    async get(namespace, ...keys) {
+        const hash = `${this.toplevel}:${namespace}`;
 
-        return key2 == null ? this.database.hashGet(hash) : this.database.hashGet(hash, key2);
+        return key2 == null ? this.database.hashGet(hash) : this.database.hashGet(hash, keys);
     }
 
-    async set(key1, key2, value) {
-        const hash = `${this.namespace}:${key1}`;
+    async set(namespace, key, value) {
+        const hash = `${this.toplevel}:${namespace}`;
     
-        return this.database.hashSet(hash, key2, value);
+        return this.database.hashSet(hash, key, value);
     }
 
-    async sets(key, data) {
-        const hash = `${this.namespace}:${key}`;
+    async sets(allData) {
+        const promises = []; 
         
-        return this.database.hashSets(hash, data);
+        for (const [namespace, data] of Object.entries(allData)) {
+            const hash = `${this.toplevel}:${namespace}`;
+        
+            promises.push(this.database.hashSets(hash, data));
+        }
+
+        await Promise.all(promises);
     }
 }
 

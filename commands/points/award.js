@@ -26,7 +26,7 @@ async function execute(interaction, args) {
 }
 
 module.exports = {
-    description: 'Gives (or takes away) points from a specific member.',
+    description: 'Awards points for winning a game',
     args: {
         points: {
             type: 'integer',

@@ -1,9 +1,9 @@
 async function execute(interaction, args) {
-    const client = interaction.client;
+    await interaction.reply({ content: 'This command is still under construction!', ephemeral: true });
 }
 
 module.exports = {
-    description: 'Gives (or takes away) points from a specific member.',
+    description: 'Lists all the available rewards..',
     args: {
         reward: {
             type: 'string',
