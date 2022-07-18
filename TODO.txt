@@ -3,6 +3,10 @@ that is the "difference" between the current data gets saved. Possibly a "change
 gets set, and when a save happens it only reads off that dictionary. NOT A GUARANTEE, as getting multiple keys is slow as balls and having only one load/store
 although it's a lot of data is faster
 
+    Changed the namespacing entirely, going to go with a changes and cache method
+    Deleting is kinda wonky right now
+    maybe have the setting changes hooked into the database methods and find the namespace from the hash ones
+
 - infinite namespacing?
 
 - Permissions and checks for subcommands don't check parents, not an issue atm but may be later

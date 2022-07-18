@@ -1,18 +1,9 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../games/treasure_hunt.js');
+const { TreasureHunt } = require('../../bot.js');
 const { toAlphanumeric } = require('../../util/grid_coords.js');
 
 async function execute(interaction, args) {
     treasureTiles = [];
-    
-    for (let y = 0; y < TreasureHunt.grid.width; y++) {
-        for (let x = 0; x < TreasureHunt.grid.length; x++) {
-            if (TreasureHunt.grid.get(x, y, 'treasure') != null) {
-                treasureTiles.push(toAlphanumeric(x, y));
-            }
-        }
-    }
-
     await interaction.reply({ content: `The treasure(s) are located at: ${treasureTiles.join(',')}`, ephemeral: true });
 }
 

@@ -1,11 +1,11 @@
 const { toAlphanumeric } = require('../../util/grid_coords'); 
-const { TreasureHunt } = require('../../games/treasure_hunt.js');
 const { PointsHandler } = require('../../handlers/points_handler');
+const { TreasureHunt } = require('../../bot');
 
 async function isValidSpace(interaction, arg) {
     const [x, y] = arg;
 
-    if (x >= TreasureHunt.grid.length || y >= TreasureHunt.grid.width) {
+    if (x >= TreasureHunt.getWidth() || y >= TreasureHunt.getLength()) {
         throw 'That space is outside the game area.';
     }
 }
@@ -14,7 +14,7 @@ async function isFreeSpace(interaction, arg) {
     await isValidSpace(interaction, arg);
 
     const [x, y] = arg;
-    const isDug = TreasureHunt.grid.get(x, y, 'is_dug');
+    const isDug = TreasureHunt.getTileData('is_dug', x, y);
 
     if (isDug) {
         throw 'That space has already been dug up.';
@@ -37,7 +37,7 @@ async function execute(interaction, args) {
     const reward = await TreasureHunt.dig(interaction.member.id, x, y);
 
     if (reward != null) {
-        const treasuresLeft = TreasureHunt.data.get('treasures_left');
+        const treasuresLeft = TreasureHunt.getData()
 
         await PointsHandler.addPoints(interaction.member.id, reward);
         await interaction.reply({ content: `${interaction.member} has found ${reward} points at ${toAlphanumeric(x, y)}. Congrats!`, embeds: [TreasureHunt.getBoardEmbed()] });

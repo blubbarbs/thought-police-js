@@ -4,19 +4,17 @@ const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
 
 class RoleHandler {
     static {
-        this.remoteData = database.getNamespace('role_info');
+        this.data = database.getNamespace('role_info');
     }
 
     static async getDescription(id) {
-        const description = await this.remoteData.get('description', id);
+        const description = await this.data.getNamespace('description').fetch(id);
     
-        console.log(description);
-
         return description;
     }
     
     static async updateDescription(id, description) {
-        await this.remoteData.set('description', id, description);
+        await this.data.getNamespace('description').put(id, description);
     }
 
     static async getAnnoucementChannel() {

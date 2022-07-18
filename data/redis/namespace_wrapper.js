@@ -1,49 +1,202 @@
+const { Collection } = require("discord.js");
+const { Cache } = require("../cache");
+
 class NamespaceWrapper {
-    constructor(database, toplevel) {
+    constructor(database, namespace) {
         this.database = database;
-        this.toplevel = toplevel;
+        this.namespace = namespace;
+        this.namespaces = new Collection();
+        this.cache = new Cache();
     }
 
-    hash(namespace) {
-        return `${this.toplevel}:${namespace}`;
+    cacheGet(...args) {
+        const key = args.pop();
+
+        return this.getNamespace(...args).cache.get(key);
     }
 
-    async keys(namespace) {    
-        if (namespace == null) {
-            const keys = [];
-            const offset = this.toplevel.length + 1;
+    cacheSet(...args) {
+        const value = args.pop();
+        const key = args.pop();
+        
+        return this.getNamespace(...args).cache.set(key, value);
+    }
 
-            for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.toplevel}:*` })) {
-                keys.push(key.substring(offset));
+    cacheDelete(...args) {
+        const key = args.pop();
+
+        this.getNamespace(...args).cache.delete(key);
+    }
+
+    cacheClear(deep = false) {
+        if (deep) {
+            for (const namespace of this.walkNamespaces()) {
+                namespace.cacheClear();
             }
-
-            return keys;
         }
         else {
-            return this.database.hashKeys(this.hash(namespace));
-        }    
+            this.cache.clear();
+        }
     }
 
-    async get(namespace, key) {
-        return this.database.hashGet(this.hash(namespace), key);
+    getNamespace(...namespaces) {
+        if (namespaces.length == 0) {
+            return this;
+        }
+        else if (namespaces.length == 1) {
+            const namespace = namespaces.pop();
+
+            return this.namespaces.ensure(namespace, () => new NamespaceWrapper(this.database, `${this.namespace}:${namespace}`));
+        }
+        else {
+            let store = this;
+
+            for (const namespace of namespaces) {
+                store = store.getNamespace(namespace);
+            }
+
+            return store;
+        }
     }
 
-    async gets(namespace, ...keys) {
-        return this.database.hashGets(this.hash(namespace), ...keys);
+    *walkNamespaces() {
+        const wrapperStack = [this];
+
+        while (wrapperStack.length > 0) {
+            const wrapper = wrapperStack.pop();
+
+            for (const subwrapper of wrapper.namespaces.values()) {
+                wrapperStack.push(subwrapper);
+                yield subwrapper;
+            }
+        }
     }
 
-    async set(namespace, key, value) {    
-        return this.database.hashSet(this.hash(namespace), key, value);
+    async retrieveChildKeys() {
+        const keys = [];
+
+        for await (const key of this.database.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.namespace}:*` })) {
+            if (key != this.namespace) {
+                keys.push(key.substring(this.namespace.length + 1));
+            }
+        }
+
+        return keys;
     }
 
-    async sets(allData) {
-        const promises = []; 
-        
-        for (const [namespace, data] of Object.entries(allData)) {        
-            promises.push(this.database.hashSets(this.hash(namespace), data));
+    async retrieveKeys() {
+        return this.database.hashKeys(this.namespace);
+    }
+
+    async fetch(key) {
+        return this.database.hashFetch(this.namespace, key);
+    }
+
+    async fetchs(...keys) {        
+        return this.database.hashFetchs(this.namespace, ...keys);
+    }
+
+    async fetchAll() {
+        return this.database.hashFetchAll(this.namespace);
+    }
+
+    async put(key, value) {            
+        return this.database.hashPut(this.namespace, key, value);    
+    }
+
+    async puts(data) {        
+        return this.database.hashPuts(this.namespace, data);
+    }
+
+    async add(key, value) {
+        return this.database.hashAdd(this.namespace, key, value);
+    }
+
+    async adds(data) {
+        return this.database.hashAdds(this.namespace, data);
+    }
+
+    async delete(key) {
+        return this.database.hashDelete(this.namespace, key);
+    }
+
+    async deletes(...keys) {
+        return this.database.hashDeletes(this.namespace, ...keys);
+    }
+
+    async deleteAll(deep = false) {
+        if (deep) {
+            const keys = await this.retrieveChildKeys();
+            keys.push(this.namespace);
+
+            return this.database.deletes(...keys);
+        }
+        else {
+            return this.database.delete(this.namespace);
+        }
+    }
+
+    async saveAllCache() {
+        const promises = [this.saveCache()];
+
+        for (const subspace of this.walkNamespaces()) {
+            promises.push(subspace.saveCache());
         }
 
         await Promise.all(promises);
+    }
+    
+    async saveCache() {
+        const promises = [];
+
+        if (this.cache.changes.size > 0) {
+            const data = Object.fromEntries(this.cache.changes.entries());
+            promises.push(this.puts(data));
+
+            console.log(`SAVING FROM ${this.namespace}`);
+            console.log(data);    
+        }
+
+        if (this.cache.deletes.size > 0) {
+            const deletes = Array.from(this.cache.deletes.values());
+            promises.push(this.deletes(...deletes));
+
+            console.log(`DELETING FROM ${this.namespace}`);
+            console.log(deletes);    
+        }
+
+        this.cache.empty();
+        await Promise.all(promises);
+    }
+
+    async loadChildNamespaces() {
+        const allChildKeys = await this.retrieveChildKeys();
+
+        for (const key of allChildKeys) {
+            const namespaces = key.split(':');
+            this.getNamespace(...namespaces);
+        }
+    }
+
+    async loadAllCache() {
+        await this.loadChildNamespaces();
+        
+        const promises = [this.loadCache()];
+        
+        for (const subspace of this.walkNamespaces()) {
+            promises.push(subspace.loadCache());
+        }
+
+        await Promise.all(promises);
+    }
+
+    async loadCache() {
+        const data = await this.fetchAll();
+
+        console.log('LOADING TO ' + this.namespace);
+        console.log(data);
+        
+        this.cache.load(data);
     }
 }
 

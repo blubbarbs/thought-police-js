@@ -1,8 +1,5 @@
+const { GridGame } = require('../game/gridgame.js');
 const { randomInt, roll } = require('../util/random.js');
-const { database } = require('../bot.js');
-const { Data } = require('../data/data.js');
-const { Data2L } = require('../data/double_layer_data.js');
-const { Grid } = require('../data/grid.js');
 
 const GRID_LENGTH = 10;
 const GRID_WIDTH = 10;
@@ -15,16 +12,13 @@ const JACKPOT_PROBABILITY = .05;
 const MIN_POINTS_JACKPOT = 75;
 const MAX_POINTS_JACKPOT = 100;
 
-class TreasureHunt {
-    static {
-        this.remoteData = database.getHashspace('treasure_hunt');
-        this.gameData = new Data('data', this.remoteData);
-        this.playerData = new Data2L('player_data', this.remoteData);
-        this.grid = new Grid('grid', this.remoteData, GRID_LENGTH, GRID_WIDTH);
+class TreasureHuntGame extends GridGame {
+    constructor(database) {
+        super('treasure_hunt', database, GRID_LENGTH, GRID_WIDTH);
     }
-    
-    static getMinutesTillNextDig(id) {
-        const lastDigTime = this.playerData.get('last_dig_time', id);
+        
+    getMinutesTillNextDig(id) {
+        const lastDigTime = this.getPlayerData('last_dig_time', id);
     
         if (lastDigTime != null) {
             const msDifference = Date.now() - lastDigTime;
@@ -38,57 +32,57 @@ class TreasureHunt {
         }
     }
     
-    static getFreeDigs(id) {
-        return this.playerData.get('free_digs', id) || 0;
+    getFreeDigs(id) {
+        return this.getPlayerData('free_digs', id) || 0;
     }
     
-    static hasUsedDailyDig(id) {
+    hasUsedDailyDig(id) {
         return this.getMinutesTillNextDig(id) > 0;
     }
     
-    static isJackpot() {
-        return this.gameData.get('jackpot') == true;
+    isJackpot() {
+        return this.getData('jackpot') == true;
     }
 
-    static getBoardEmbed() {
+    getBoardEmbed() {
         const embed = {
             color: '#ebf2a0',
             title: 'Treasure Hunt!',
             fields: [
                 {
                     name: 'Treasure Available',
-                    value: `${this.gameData.get('treasure')} points`,
+                    value: `${this.getData('treasure')} points`,
                     inline: false
                 },
                 {
                     name: 'Treasure Chests Left',
-                    value: `${this.gameData.get('treasures_left')} chest(s)`,
+                    value: `${this.getData('treasures_left')} chest(s)`,
                     inline: false
                 }
             ],
-            description: this.grid.toString()
+            description: this.toString()
         }
     
         return embed;
     }
 
-    static async newGame() {
-        this.grid.clear();
-        this.playerData.clear('last_dig_time');
-    
+    async newGame() {
+        this.playerData.getNamespace('last_dig_time').cacheClear();
+        this.gridData.cacheClear(true);
+        
         if (roll(JACKPOT_PROBABILITY)) {
-            const [jackpotX, jackpotY] = this.grid.randomTile();
+            const [jackpotX, jackpotY] = this.randomTile();
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
     
-            this.grid.set('treasure', jackpotX, jackpotY, jackpotAmount);
-            this.gameData.set('treasures_left', 1);
-            this.gameData.set('treasure', jackpotAmount);
-            this.gameData.set('jackpot', true);
-            this.grid.defaultTileDisplay = '🟨';
+            this.setTileData('treasure', jackpotX, jackpotY, jackpotAmount);
+            this.setData('treasures_left', 1);
+            this.setData('treasure', jackpotAmount);
+            this.setData('jackpot', true);
+            this.setData('default_tile_display', '🟨');
         }
         else {
             const numTreasures = randomInt(MAX_TREASURES, MIN_TREASURES);
-            const treasureTiles = this.grid.randomTiles(numTreasures);
+            const treasureTiles = this.randomTiles(numTreasures);
             const totalTreasureAmount = randomInt(MAX_POINTS, MIN_POINTS);
             let treasurePool = totalTreasureAmount;
     
@@ -97,48 +91,38 @@ class TreasureHunt {
                 const treasureAmount = randomInt(Math.floor(treasurePool * .8), Math.ceil(treasurePool * .2));
                 treasurePool -= treasureAmount;
     
-                this.grid.set('treasure', x, y, treasureAmount);
+                this.setTileData('treasure', x, y, treasureAmount);
             }
     
             const [finalX, finalY] = treasureTiles[treasureTiles.length - 1];
     
-            this.grid.set('treasure', finalX, finalY, treasurePool);
-            this.gameData.set('treasure', totalTreasureAmount);
-            this.gameData.set('treasures_left', numTreasures);
+            this.setTileData('treasure', finalX, finalY, treasurePool);
+            this.setData('treasure', totalTreasureAmount);
+            this.setData('treasures_left', numTreasures);
         }
+
+        await this.saveGame();
     }    
-    
-    static async saveGame() {
-        await this.gameData.save();
-        await this.playerData.save();
-        await this.grid.save();
-    }
-    
-    static async loadGame() {
-        await this.gameData.load();
-        await this.playerData.load();
-        await this.grid.load();
-    }
-        
-    static async dig(id, x, y) {
-        const treasure = this.grid.get('treasure', x, y);
+            
+    async dig(id, x, y) {
+        const treasure = this.getTileData('treasure', x, y);
     
         if (treasure != null) {
-            this.grid.setDisplay(x, y, '⭕');
-            this.gameData.set('treasure', this.gameData.get('treasure') - treasure);
-            this.gameData.set('treasures_left', this.gameData.get('treasures_left') - 1);
+            this.setTileDisplay(x, y, '⭕');
+            this.setData('treasure', this.getData('treasure') - treasure);
+            this.setData('treasures_left', this.getData('treasures_left') - 1);
         }
         else {
-            this.grid.setDisplay(x, y, '❌');
+            this.setTileDisplay(x, y, '❌');
         }
     
-        this.grid.set('is_dug', x, y, true);
+        this.setTileData('is_dug', x, y, true);
     
         if (this.hasUsedDailyDig(id)) {
-            this.playerData.set('free_digs', id, this.getFreeDigs(id) - 1);
+            this.setPlayerData('free_digs', id, this.getFreeDigs(id) - 1);
         }
         else {
-            this.playerData.set('last_dig_time', id, Date.now());
+            this.setPlayerData('last_dig_time', id, Date.now());
         }
     
         await this.saveGame();
@@ -148,5 +132,5 @@ class TreasureHunt {
 }
 
 module.exports = {
-    TreasureHunt: TreasureHunt
+    TreasureHuntGame: TreasureHuntGame
 }

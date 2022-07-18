@@ -1,28 +1,31 @@
-const { HashWrapper } = require("./hash_wrapper");
+const { Collection } = require("discord.js");
 const { NamespaceWrapper } = require("./namespace_wrapper");
 
 class Database {
     constructor(redis) {
         this.redis = redis;
         this.intervalID = null;
-        this.namespaces = {};
-        this.hashes = {};
-    }
-    
-    getNamespace(namespace) {
-        if (!(namespace in this.namespaces)) {
-            this.namespaces[namespace] = new NamespaceWrapper(this, namespace);
-        }
-
-        return this.namespaces[namespace];
+        this.namespaces = new Collection();
     }
 
-    getHashspace(hash) {
-        if (!(hash in this.hashes)) {
-            this.hashes[hash] = new HashWrapper(this, hash);
+    getNamespace(...namespaces) {
+        if (namespaces.length == 0) {
+            return this;
         }
+        else if (namespaces.length == 1) {
+            const namespace = namespaces.pop();
+            
+            return this.namespaces.ensure(namespace, () => new NamespaceWrapper(this, namespace));
+        }
+        else {
+            let store = this;
 
-        return this.hashes[hash];    
+            for (const namespace of namespaces) {
+                store = store.getNamespace(namespace);
+            }
+
+            return store;
+        }
     }
 
     async connect() {
@@ -37,7 +40,7 @@ class Database {
         clearInterval(this.intervalID);
     }
     
-    async keys() {
+    async retrieveKeys() {
         const keys = [];
     
         for await (const key of this.redis.scanIterator({ TYPE: 'string', MATCH: `*` })) {
@@ -47,19 +50,19 @@ class Database {
         return keys;
     }
     
-    async hashKeys(hash) {
+    async hashRetrieveKeys(hash) {
         const keys = await this.redis.hKeys(hash);
     
         return keys;
     }
-        
-    async get(key) {
+
+    async fetch(key) {
         const data = await this.redis.get(key);
-    
+            
         return JSON.parse(data);
     }
     
-    async gets(...keys) {
+    async fetchs(...keys) {
         const data = await this.redis.mGet(keys);
         const dataMap = {};
         
@@ -68,9 +71,15 @@ class Database {
         return dataMap;
     }
 
-    async hashGet(hash, key) {
+    async fetchAll() {
+        const keys = await this.retrieveKeys();
+
+        return this.fetchs(keys);
+    }
+
+    async hashFetch(hash, key) {
         if (key == null) {
-            return this.hashGets(hash);
+            return this.hashFetch(hash);
         }
         else {
             const data = await this.redis.hGet(hash, key);
@@ -79,7 +88,7 @@ class Database {
         }        
     }
 
-    async hashGets(hash, ...keys) {
+    async hashFetchs(hash, ...keys) {
         const dataMap = {};
 
         if (keys.length > 0) {
@@ -98,11 +107,15 @@ class Database {
         return dataMap;
     }
 
-    async set(key, value) {
-        await this.redis.set(key, JSON.stringify(value));
+    async hashFetchAll(hash) {
+        return this.hashFetchs(hash);
+    }
+
+    async put(key, value) {
+        return this.redis.set(key, JSON.stringify(value));
     }
     
-    async sets(data) {
+    async puts(data) {
         const arrayedData = [];
     
         for (const [k, v] of Object.entries(data)) {
@@ -110,14 +123,33 @@ class Database {
             arrayedData.push(JSON.stringify(v));
         }        
     
-        await this.redis.mSet(arrayedData);
+        return this.redis.mSet(arrayedData);
     }
     
-    async hashSet(hash, key, value) {
-        await this.redis.hSet(hash, key, JSON.stringify(value));
+    async add(key, value) {
+        if (Number.isInteger(value)) {
+            return this.redis.incrBy(key, value);
+        }
+        else {
+            return this.redis.incrByFloat(key, value);
+        }
+    }
+
+    async adds(data) {
+        const promises = [];
+
+        for (const [key, value] of Object.entries(data)) {
+            promises.push(this.add(key, value));
+        }
+
+        return Promise.all(promises);
+    }
+
+    async hashPut(hash, key, value) {
+        return this.redis.hSet(hash, key, JSON.stringify(value));
     }
     
-    async hashSets(hash, data) {
+    async hashPuts(hash, data) {
         const arrayedData = [];
             
         for (const [k, v] of Object.entries(data)) {
@@ -125,7 +157,52 @@ class Database {
             arrayedData.push(JSON.stringify(v));
         }
     
-        await this.redis.hSet(hash, arrayedData);
+        return this.redis.hSet(hash, arrayedData);
+    }
+
+    async hashAdd(hash, key, value) {
+        if (Number.isInteger(value)) {
+            return this.redis.hIncrBy(hash, key, value);
+        }
+        else {
+            return this.redis.hIncrByFloat(hash, key, value);
+        }
+    }
+
+    async hashAdds(hash, data) {
+        const promises = [];
+
+        for (const [key, value] of Object.entries(data)) {
+            promises.push(this.hashAdd(hash, key, value));
+        }
+
+        return Promise.all(promises);
+    }
+
+    async delete(key) {        
+        return this.redis.del(key);
+    }
+
+    async deletes(...keys) {
+        return this.redis.del(keys);
+    }
+
+    async deleteAll() {
+        const keys = await this.retrieveKeys();
+
+        return this.deletes(keys);
+    }
+
+    async hashDelete(hash, key) {
+        return this.redis.hDel(hash, key);
+    }
+
+    async hashDeletes(hash, ...keys) {
+        return this.redis.hDel(hash, keys);
+    }
+
+    async hashDeleteAll(hash) {
+        return this.redis.del(hash);
     }
 }
 

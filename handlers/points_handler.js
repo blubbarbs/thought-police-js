@@ -4,7 +4,8 @@ const LEADERBOARD_CHANNEL_ID = '987990655601102899';
 
 class PointsHandler {
     static {
-        this.remoteData = database.getNamespace('user_info');
+        this.data = database.getNamespace('user_info', 'points');
+        
         this.rewards = {
             change_nickname: {
                 price: 50,
@@ -24,48 +25,28 @@ class PointsHandler {
         }
     }
     
-    static async getPoints(...ids) {
-        const points = await this.remoteData.get('points', ...ids);
-    
-        return points;
+    static async getPoints(id) {    
+        return this.data.fetch(id);
     }
     
     static async setPoints(id, points, shouldUpdateLeaderboard = true) {
-        await this.remoteData.set('points', id, points);
+        await this.data.put(id, points);
     
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
     }
     
-    static async setAllPoints(data, shouldUpdateLeaderboard = true) {
-        await this.remoteData.sets({ points: data });
+    static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {    
+        const points = await this.data.add(id, deltaPoints);
+
+        if (shouldUpdateLeaderboard) {
+            await this.updateLeaderboard();
+        }
+
+        return points;
+    }
         
-        if (shouldUpdateLeaderboard) {
-            await this.updateLeaderboard();
-        }
-    }
-
-    static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
-        const currentPoints = await this.getPoints(id);
-        const newPoints = currentPoints + deltaPoints;
-    
-        await this.setPoints(id, currentPoints + deltaPoints, shouldUpdateLeaderboard);
-    
-        return newPoints;
-    }
-    
-    static async addAllPoints(data, shouldUpdateLeaderboard) {
-        const allIDS = Array.from(Object.keys(data));
-        const allPoints = await this.remoteData.gets('points', ...allIDS);
-
-        for (const [id, deltaPoints] of Object.entries(data)) {            
-            allPoints[id] = +allPoints[id] + deltaPoints;
-        }
-
-        await this.setAllPoints(allPoints, shouldUpdateLeaderboard);
-    }    
-    
     static async getLeaderboardChannel() {
         const guild = await getGuild();
         const channel = await guild.channels.fetch(LEADERBOARD_CHANNEL_ID);
@@ -74,7 +55,7 @@ class PointsHandler {
     }
     
     static async getLeaderboard(end, start) {
-        const scores = await this.remoteData.get('points');        
+        const scores = await this.data.fetchAll();       
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;

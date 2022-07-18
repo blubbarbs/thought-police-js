@@ -1,10 +1,10 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../games/treasure_hunt.js');
+const { TreasureHunt } = require('../../bot');
 
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
 
-    TreasureHunt.playerData.set(target.id, 'last_dig_time', null);
+    TreasureHunt.setPlayerData('last_dig_time', target.id, null);
     await TreasureHunt.saveGame();
     
     if (target == interaction.member) {
