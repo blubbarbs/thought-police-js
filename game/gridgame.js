@@ -33,6 +33,10 @@ class GridGame extends Game {
         this.gridData.cacheSet(key, `${x},${y}`, value);
     }
 
+    clearTileData(key, x, y) {
+        this.gridData.cacheDelete(key, `${x},${y}`);
+    }
+
     getTileDisplay(x, y) {
         return this.getTileData('display', x, y) || this.getDefaultTileDisplay();
     }
@@ -49,7 +53,7 @@ class GridGame extends Game {
         const tiles = [];
 
         for (const [x, y] of this.tiles()) {
-            if (predicate == null || predicate(x, y)) {                    
+            if (predicate == null || predicate(x, y)) {
                 tiles.push([x, y]);
             }                
         }
@@ -58,7 +62,7 @@ class GridGame extends Game {
     }
 
     randomTiles(amount, predicate) {
-        const tilePool = this.findTiles(predicate);        
+        const tilePool = this.findTiles(predicate);      
         const tiles = [];
     
         for (let i = 0; i < amount; i++) {
@@ -72,11 +76,11 @@ class GridGame extends Game {
     }
     
     randomTile(predicate) {
-        return this.randomTiles(predicate)[0];
+        return this.randomTiles(1, predicate)[0];
     }
 
     toString() {
-        let str = '❎';
+        let str = '↘️';
 
         for (let x = 0; x < this.getLength(); x++) {
             str += getNumberEmoji(x);

@@ -2,7 +2,7 @@ const { toAlphanumeric } = require('../../util/grid_coords');
 const { PointsHandler } = require('../../handlers/points_handler');
 const { TreasureHunt } = require('../../bot');
 
-async function isValidSpace(interaction, arg) {
+async function isValidSpace(_, arg) {
     const [x, y] = arg;
 
     if (x >= TreasureHunt.getWidth() || y >= TreasureHunt.getLength()) {
@@ -10,8 +10,8 @@ async function isValidSpace(interaction, arg) {
     }
 }
 
-async function isFreeSpace(interaction, arg) {
-    await isValidSpace(interaction, arg);
+async function isFreeSpace(_, arg) {
+    await isValidSpace(_, arg);
 
     const [x, y] = arg;
     const isDug = TreasureHunt.getTileData('is_dug', x, y);
@@ -21,41 +21,51 @@ async function isFreeSpace(interaction, arg) {
     }
 }
 
-async function canDig(interaction, args) {
-    if (!TreasureHunt.hasUsedDailyDig(interaction.member.id) || TreasureHunt.getFreeDigs(interaction.member.id) > 0) return;
+async function canDig(interaction) {
+    if (!TreasureHunt.hasUsedDailyDig(interaction.member.id)) return;
     
     const minutesTillDailyDig = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
     const hours = Math.floor(minutesTillDailyDig / 60);
     const minutes = minutesTillDailyDig % 60;
 
-    throw `You have already taken your daily dig and have no free digs left. Your next dig will be available in **${hours} hour(s)** and **${minutes} minutes**.`;
+    throw `You have already taken your daily dig. Your next dig will be available in **${hours} hour(s)** and **${minutes} minute(s)**.`;
 }
 
 async function execute(interaction, args) {
     const [x, y] = args['coordinates'];
-    const usedFreeDig = TreasureHunt.hasUsedDailyDig(interaction.member.id);
-    const reward = await TreasureHunt.dig(interaction.member.id, x, y);
+    const treasure = TreasureHunt.dig(interaction.member.id, x, y);
 
-    if (reward != null) {
-        const treasuresLeft = TreasureHunt.getData()
+    if (treasure == null) {
+        await TreasureHunt.saveGame();
+        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. They found nothing.`, embeds: [TreasureHunt.getBoardEmbed()] });
+        return;
+    }
 
-        await PointsHandler.addPoints(interaction.member.id, reward);
-        await interaction.reply({ content: `${interaction.member} has found ${reward} points at ${toAlphanumeric(x, y)}. Congrats!`, embeds: [TreasureHunt.getBoardEmbed()] });
+    const points = treasure['points'];
+    const freeDigs = treasure['free_digs'];
+    const totalPointsLeft = TreasureHunt.getTreasuresLeft('points');
+    let rewardMessage = `${interaction.member} dug at ${toAlphanumeric(x, y)}. *They struck treasure!* Inside was: \n\n`;
 
-        if (treasuresLeft == 0) {
-            await TreasureHunt.newGame();
-            await TreasureHunt.saveGame();
+    if (points != null) {
+        await PointsHandler.addPoints(interaction.member.id, points);
+        rewardMessage += `**${points}** points \n`;
+    }
 
-            await interaction.followUp({ content: 'That was all of the treasure on the board. Starting a new game...', embeds: [TreasureHunt.getBoardEmbed()] });
-        }
+    if (freeDigs != null) {
+        TreasureHunt.addFreeDigs(interaction.member.id, freeDigs);
+        rewardMessage += `**${freeDigs}** free dig(s) \n`;
+    }
+
+    await interaction.reply({ content: rewardMessage, embeds: [TreasureHunt.getBoardEmbed()]});
+
+    if (totalPointsLeft == 0) {
+        await TreasureHunt.newGame();
+
+        await interaction.followUp({ content: 'That was all of the treasure on the board. A new game has begun.', embeds: [TreasureHunt.getBoardEmbed()] });
     }
     else {
-        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. Nothing was found.`, embeds: [TreasureHunt.getBoardEmbed()] });
+        await TreasureHunt.saveGame();
     }
-
-    if (usedFreeDig) {
-        await interaction.followUp({ content: `You have used up a free dig. You have ${TreasureHunt.getFreeDigs(interaction.member.id)} free digs remaining.`, ephemeral: true });
-    }    
 }
 
 module.exports = {

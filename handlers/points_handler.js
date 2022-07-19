@@ -4,7 +4,7 @@ const LEADERBOARD_CHANNEL_ID = '987990655601102899';
 
 class PointsHandler {
     static {
-        this.data = database.getNamespace('user_info', 'points');
+        this.data = database.getNamespace('user_info', 'points'); 
         
         this.rewards = {
             change_nickname: {

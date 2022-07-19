@@ -85,11 +85,13 @@ class NamespaceWrapper {
     }
 
     async retrieveKeys() {
-        return this.database.hashKeys(this.namespace);
+        return this.database.hashRetrieveKeys(this.namespace);
     }
 
-    async fetch(key) {
-        return this.database.hashFetch(this.namespace, key);
+    async fetch(...args) {
+        const key = args.pop();
+
+        return this.database.hashFetch(this.getNamespace(...args).namespace, key);
     }
 
     async fetchs(...keys) {        
@@ -100,24 +102,32 @@ class NamespaceWrapper {
         return this.database.hashFetchAll(this.namespace);
     }
 
-    async put(key, value) {            
-        return this.database.hashPut(this.namespace, key, value);    
+    async put(...args) {          
+        const value = args.pop();
+        const key = args.pop();
+        
+        return this.database.hashPut(this.getNamespace(...args).namespace, key, value);    
     }
 
     async puts(data) {        
         return this.database.hashPuts(this.namespace, data);
     }
 
-    async add(key, value) {
-        return this.database.hashAdd(this.namespace, key, value);
+    async add(...args) {
+        const value = args.pop();
+        const key = args.pop();
+
+        return this.database.hashAdd(this.getNamespace(...args).namespace, key, value);
     }
 
     async adds(data) {
         return this.database.hashAdds(this.namespace, data);
     }
 
-    async delete(key) {
-        return this.database.hashDelete(this.namespace, key);
+    async delete(...args) {
+        const key = args.pop();
+
+        return this.database.hashDelete(this.getNamespace(...args).namespace, key);
     }
 
     async deletes(...keys) {

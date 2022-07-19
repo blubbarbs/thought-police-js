@@ -15,8 +15,8 @@ async function colorMember(member, hexColor) {
 async function decolorMember(member) {
 	const colorRole = member.roles.color;
 
-	if(colorRole == null || (colorRole.name.match(hexRegex) == null && colorRole.name != 'Greener')) {
-		return;
+	if (colorRole == null || (colorRole.name.match(hexRegex) == null && colorRole.name != 'Greener')) {
+        return;
 	}
 	else {
         await member.roles.remove(colorRole);

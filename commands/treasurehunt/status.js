@@ -1,6 +1,6 @@
 const { TreasureHunt } = require("../../bot");
 
-async function execute(interaction, args) {
+async function execute(interaction) {
     const minutesTillDaily = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
     const freeDigs = TreasureHunt.getFreeDigs(interaction.member.id);
 
