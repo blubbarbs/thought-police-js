@@ -24,7 +24,7 @@ class Command {
         const command = new Command(commandName, commandObj, parent);
 
         if (hasSubcommands) {
-            for (const subcommandFileName of fs.readdirSync(commandPath).filter((name) => name.endsWith('.js') && name != '.js')) {
+            for (const subcommandFileName of fs.readdirSync(commandPath).filter((name) => name != '.js')) {
                 const subcommand = Command.fromPath(path.join(commandPath, subcommandFileName), command);
 
                 command.subcommands.set(subcommand.name, subcommand);
@@ -81,12 +81,18 @@ class Command {
             processedArgs[arg.name] = await arg.process(interaction);
         }
 
-        if (!interaction.member.permissions.has(this.permissions)) {
-            throw 'You do not have permission to use this command.';
-        }
+        let command = this;
         
-        for (const check of this.checks) {
-            await check(interaction, processedArgs);
+        while (command != null) {
+            if (!interaction.member.permissions.has(command.permissions)) {
+                throw 'You do not have permission to use this command.';
+            }
+            
+            for (const check of command.checks) {
+                await check(interaction, processedArgs);
+            }
+
+            command = command.parent;
         }
         
         await this.run(interaction, processedArgs);

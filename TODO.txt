@@ -1,3 +1,1 @@
-- Permissions and checks for subcommands don't check parents, not an issue atm but may be later
-
 - Eventually if games become big enough, cache will not be feasible. Would all have to be done in the database

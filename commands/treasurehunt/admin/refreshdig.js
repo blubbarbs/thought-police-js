@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../bot');
+const { TreasureHunt } = require('../../../bot');
 
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;

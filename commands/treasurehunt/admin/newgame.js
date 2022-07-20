@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../bot');
+const { TreasureHunt } = require('../../../bot');
 
 async function execute(interaction) {
     await TreasureHunt.newGame();
@@ -7,7 +7,7 @@ async function execute(interaction) {
 }
 
 module.exports = {
-    description: 'Start a new game for the treasure hunt.',
+    description: 'Start a new game.',
     permissions: Permissions.FLAGS.ADMINISTRATOR,
     execute: execute
 }
