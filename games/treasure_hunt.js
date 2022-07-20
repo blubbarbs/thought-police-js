@@ -4,10 +4,10 @@ const { randomGaussian, randomInt, roll } = require('../util/random.js');
 const GRID_LENGTH = 10;
 const GRID_WIDTH = 10;
 const COOLDOWN_TIMER_MINS = 1200;
-const MIN_POINT_TILES = 5;
-const MAX_POINT_TILES = 10;
-const MIN_FREEDIG_TILES = 3;
-const MAX_FREEDIG_TILES = 5;
+const MIN_POINT_ROLLS = 5;
+const MAX_POINT_ROLLS = 10;
+const MIN_FREEDIG_ROLLS = 3;
+const MAX_FREEDIG_ROLLS = 5;
 const MIN_POINTS = 30;
 const MAX_POINTS = 50;
 const MIN_POINTS_JACKPOT = 75;
@@ -86,14 +86,14 @@ class TreasureHuntGame extends GridGame {
         return left;
     }
 
-    distributeTreasure(numTreasures, treasureName, treasureAmountGenerator) {
-        for (let i = 0; i < numTreasures; i++) {
+    distributeTreasure(numRolls, treasureName, treasureAmountGenerator) {
+        for (let i = 0; i < numRolls; i++) {
             console.log(this.randomTile());
             const [x, y] = this.randomTile();
             const treasure = this.getTileData('treasure', x, y) || {};
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(x, y) : treasureAmountGenerator;
 
-            treasure[treasureName] = Math.round(treasureAmount);
+            treasure[treasureName] = treasureName in treasure ? treasure[treasureName] + treasureAmount : treasureAmount;
             this.setTileData('treasure', x, y, treasure);
         }
     }
@@ -101,8 +101,6 @@ class TreasureHuntGame extends GridGame {
     dig(id, x, y) {
         const treasure = this.getTileData('treasure', x, y);
     
-        console.log(treasure);
-
         if (treasure != null) {
             this.setTileDisplay(x, y, '⭕');
             this.clearTileData('treasure', x, y);
@@ -123,24 +121,24 @@ class TreasureHuntGame extends GridGame {
         
         if (roll(JACKPOT_PROBABILITY)) {
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
-    
+            const numFreeDigRolls = randomInt(MAX_FREEDIG_ROLLS, MIN_FREEDIG_ROLLS) * 2;
+
             this.distributeTreasure(1, 'points', jackpotAmount);
+            this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
             this.setData('jackpot', true);
             this.setData('default_tile_display', '🟨');
         }
         else {
-            const numPointTiles = randomInt(MAX_POINT_TILES, MIN_POINT_TILES);
-            const averagePoints = randomInt(MAX_POINTS, MIN_POINTS) / numPointTiles;
+            const numPointRolls = randomInt(MAX_POINT_ROLLS, MIN_POINT_ROLLS);
+            const averagePoints = randomInt(MAX_POINTS, MIN_POINTS) / numPointRolls;
+            const numFreeDigRolls = randomInt(MAX_FREEDIG_ROLLS, MIN_FREEDIG_ROLLS);
             
-            this.distributeTreasure(numPointTiles, 'points', () => randomGaussian(averagePoints, averagePoints * .2));
+            this.distributeTreasure(numPointRolls, 'points', () => Math.round(randomGaussian(averagePoints, averagePoints * .2)));
+            this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
         }
 
-        const numFreeDigTiles = randomInt(MAX_FREEDIG_TILES, MIN_FREEDIG_TILES);
-
-        this.distributeTreasure(numFreeDigTiles, 'free_digs', 1);
-
         await this.saveGame();
-    }    
+    }
 }
 
 module.exports = {
