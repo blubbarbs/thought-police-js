@@ -41,11 +41,11 @@ class MudaeHandler {
         if (!isMudaeEnabled) return;
     
         if (apply && !isCurfewEnabled) {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: false, USE_APPLICATION_COMMANDS: false, ADD_REACTIONS: false });
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: false, USE_APPLICATION_COMMANDS: false });
             await mudaeChannel.send('`This channel is now closed. Mudae will resume at 9 A.M.`');
         }
         else if (!apply && isCurfewEnabled) {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: null, USE_APPLICATION_COMMANDS: null, ADD_REACTIONS: null });
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: null, USE_APPLICATION_COMMANDS: null });
             await mudaeChannel.send('`This channel has been re-opened. Mudae will close at 12 A.M.`');
         }
     }
