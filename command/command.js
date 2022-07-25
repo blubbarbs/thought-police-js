@@ -1,7 +1,7 @@
 const { Collection } = require('discord.js');
 const { CommandArgument } = require('./command_arg');
+const { existsSync, readdirSync } = require('node:fs');
 const path = require('node:path');
-const fs = require('node:fs');
 
 class Command {
     static fromPath(commandPath, parent) {
@@ -11,7 +11,7 @@ class Command {
         if (commandPath.endsWith('.js')) {
             commandObj = require(commandPath);
         }
-        else if (fs.existsSync(path.join(commandPath, '.js'))) {
+        else if (existsSync(path.join(commandPath, '.js'))) {
             commandObj = require(path.join(commandPath, '.js'));
             hasSubcommands = true;
         }
@@ -24,7 +24,7 @@ class Command {
         const command = new Command(commandName, commandObj, parent);
 
         if (hasSubcommands) {
-            for (const subcommandFileName of fs.readdirSync(commandPath).filter((name) => name != '.js')) {
+            for (const subcommandFileName of readdirSync(commandPath).filter((name) => name != '.js')) {
                 const subcommand = Command.fromPath(path.join(commandPath, subcommandFileName), command);
 
                 command.subcommands.set(subcommand.name, subcommand);

@@ -39,7 +39,7 @@ class CommandHandler {
         const discordCommandsJSONOld = await database.redis.get('commands');
     
         if (discordCommandsJSON != discordCommandsJSONOld) {
-            await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands })
+            await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands });
             await database.redis.set('commands', discordCommandsJSON);
     
             console.log('Different command structure found. Succesfully updated commands.');
