@@ -5,6 +5,7 @@ const EVERYONE_ROLE_ID = '209496826204782592';
 const MUDAE_CHANNEL_ID = '810831000572657665';
 const CURFEW_START_HOURS = 0;
 const CURFEW_END_HOURS = 9;
+
 const HOUR_IN_MS = 60 * 60 * 1000;
 const DAY_IN_MS = 24 * HOUR_IN_MS;
 
@@ -16,7 +17,7 @@ class MudaeHandler {
     static getCurfewTimes() {
         const beginningOfDay = new Date(Date.now()).setHours(0, 0, 0, 0);
         const curfewStart = new Date(beginningOfDay).setHours(CURFEW_START_HOURS);
-        const curfewEnd = new Date(beginningOfDay).setHours(CURFEW_END_HOURS);
+        const curfewEnd = new Date(beginningOfDay).setHours(CURFEW_END_HOURS > CURFEW_START_HOURS ? CURFEW_END_HOURS : CURFEW_END_HOURS + 24);
     
         return { start: curfewStart, end: curfewEnd };
     }

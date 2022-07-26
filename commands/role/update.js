@@ -6,7 +6,6 @@ async function execute(interaction, args) {
     const description = args['description'];
 
     await RoleHandler.updateDescription(role.id, description);
-
     await interaction.reply({ content: `Updated information for ${role.name}`, ephemeral: true });
 }
 

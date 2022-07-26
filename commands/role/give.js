@@ -7,7 +7,6 @@ async function execute(interaction, args) {
     const reason = args['reason'];
 
     await RoleHandler.awardRole(role, reason, targets);
-
     await interaction.reply({ content: `All roles have been awarded.`, ephemeral: true });
 }
 
