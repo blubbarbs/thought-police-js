@@ -4,7 +4,7 @@ const USER_REGEX = /<@!?([0-9]+)>/;
 const CHANNEL_REGEX = /<#([0-9]+)>/;
 const ROLE_REGEX = /<@&([0-9]+)>/;
 
-export async function parseMember(arg, channel) {
+async function parseMember(arg, channel) {
     const match = arg.match(USER_REGEX);
     
     if (match != null) {
@@ -24,13 +24,13 @@ export async function parseMember(arg, channel) {
     }
 }
 
-export async function parseUser(arg, channel) {
+async function parseUser(arg, channel) {
     const member = await parseMember(arg, channel);
 
     return member.user;
 }
 
-export async function parseChannel(arg, channel) {
+async function parseChannel(arg, channel) {
     const match = arg.match(CHANNEL_REGEX);
     
     if (match != null) {
@@ -50,7 +50,7 @@ export async function parseChannel(arg, channel) {
     }
 }
 
-export async function parseRole(arg, channel) {
+async function parseRole(arg, channel) {
     const match = arg.match(ROLE_REGEX);
     
     if (match != null) {
@@ -70,7 +70,7 @@ export async function parseRole(arg, channel) {
     }
 }
 
-export async function parseMentionable(arg, channel) {
+async function parseMentionable(arg, channel) {
     const userMatch = arg.match(USER_REGEX);
     const channelMatch = arg.match(CHANNEL_REGEX);
     const roleMatch = arg.match(ROLE_REGEX);
@@ -89,7 +89,7 @@ export async function parseMentionable(arg, channel) {
     }
 }
 
-export async function parseInteger(arg) {
+async function parseInteger(arg) {
     if (Number.isSafeInteger(arg)) {
         return +arg;
     }
@@ -98,7 +98,7 @@ export async function parseInteger(arg) {
     }
 }
 
-export async function parseNumber(arg) {
+async function parseNumber(arg) {
     if (!isNaN(arg)) {
         return +arg;
     }
@@ -107,7 +107,7 @@ export async function parseNumber(arg) {
     }
 }
 
-export async function parseBoolean(arg) {
+async function parseBoolean(arg) {
     arg = arg.toLowerCase();
 
     if (arg == 't' || arg == 'true' || arg == 'yes' || arg == 'y') {
@@ -121,7 +121,7 @@ export async function parseBoolean(arg) {
     }
 }
 
-export async function parseGridCoordinates(arg) {
+async function parseGridCoordinates(arg) {
     const coords = toCoordinates(arg);
 
     if (coords == null) {
@@ -136,4 +136,16 @@ export async function parseGridCoordinates(arg) {
     else {
         return coords;
     }
+}
+
+module.exports = {
+    parseBoolean: parseBoolean,
+    parseChannel: parseChannel,
+    parseGridCoordinates: parseGridCoordinates,
+    parseInteger: parseInteger,
+    parseMember: parseMember,
+    parseMentionable: parseMentionable,
+    parseNumber: parseNumber,
+    parseRole: parseRole,
+    parseUser: parseUser
 }
