@@ -1,4 +1,4 @@
-const { remoteData, guild } = require('../bot.js');
+const { remoteData, getGuild } = require('../bot.js');
 
 const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
 
@@ -8,6 +8,7 @@ class RoleHandler {
     }
 
     static async getAnnoucementChannel() {
+        const guild = await getGuild();
         const channel = await guild.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
     
         return channel;

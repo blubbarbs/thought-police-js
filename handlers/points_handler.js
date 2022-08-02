@@ -46,13 +46,6 @@ class PointsHandler {
 
         return points;
     }
-        
-    static async getLeaderboardChannel() {
-        const guild = await getGuild();
-        const channel = await guild.channels.fetch(LEADERBOARD_CHANNEL_ID);
-    
-        return channel;
-    }
     
     static async getLeaderboard(end, start) {
         const scores = await this.points.getAll();       
@@ -105,7 +98,14 @@ class PointsHandler {
         }
     
         await leaderboardMessage.edit(leaderboardText);
-    }    
+    } 
+    
+    static async getLeaderboardChannel() {
+        const guild = await getGuild();
+        const channel = await guild.channels.fetch(LEADERBOARD_CHANNEL_ID);
+    
+        return channel;
+    }
 }
 
 module.exports = {
