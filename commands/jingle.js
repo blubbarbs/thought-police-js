@@ -2,7 +2,7 @@ const { request } = require('undici');
 const { JingleHandler } = require('../handlers/jingle_handler');
 const { assert } = require('../util/checks');
 
-async function isAudioURL(interaction, arg) {
+async function isAudioURL(_, arg) {
     let contentType = null;
 
     try {

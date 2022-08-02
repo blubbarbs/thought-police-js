@@ -1,10 +1,10 @@
-const { database, getGuild } = require('../bot.js');
+const { remoteData, getGuild } = require('../bot.js');
 
 const LEADERBOARD_CHANNEL_ID = '987990655601102899';
 
 class PointsHandler {
     static {
-        this.data = database.getNamespace('user_info', 'points'); 
+        this.points = remoteData.getNamespace('user_info', 'points'); 
         
         this.rewards = {
             change_nickname: {
@@ -26,11 +26,11 @@ class PointsHandler {
     }
     
     static async getPoints(id) {    
-        return this.data.fetch(id);
+        return await this.points.get(id);
     }
     
     static async setPoints(id, points, shouldUpdateLeaderboard = true) {
-        await this.data.put(id, points);
+        await this.points.set(id, points);
     
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
@@ -42,7 +42,7 @@ class PointsHandler {
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
-        }
+        }        
 
         return points;
     }
@@ -55,7 +55,7 @@ class PointsHandler {
     }
     
     static async getLeaderboard(end, start) {
-        const scores = await this.data.fetchAll();       
+        const scores = await this.points.getAll();       
         const leaderboardKeysSorted = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;

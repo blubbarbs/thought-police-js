@@ -1,31 +1,7 @@
-const { Collection } = require("discord.js");
-const { NamespaceWrapper } = require("./namespace_wrapper");
-
 class Database {
     constructor(redis) {
         this.redis = redis;
         this.intervalID = null;
-        this.namespaces = new Collection();
-    }
-
-    getNamespace(...namespaces) {
-        if (namespaces.length == 0) {
-            return this;
-        }
-        else if (namespaces.length == 1) {
-            const namespace = namespaces.pop();
-            
-            return this.namespaces.ensure(namespace, () => new NamespaceWrapper(this, namespace));
-        }
-        else {
-            let store = this;
-
-            for (const namespace of namespaces) {
-                store = store.getNamespace(namespace);
-            }
-
-            return store;
-        }
     }
 
     async connect() {
@@ -40,10 +16,10 @@ class Database {
         clearInterval(this.intervalID);
     }
     
-    async retrieveKeys() {
+    async retrieveKeys(type = 'string', match = '*') {
         const keys = [];
     
-        for await (const key of this.redis.scanIterator({ TYPE: 'string', MATCH: `*` })) {
+        for await (const key of this.redis.scanIterator({ TYPE: type, MATCH: match })) {
             keys.push(key);
         }
     
@@ -54,6 +30,17 @@ class Database {
         const keys = await this.redis.hKeys(hash);
     
         return keys;
+    }
+    
+    async hashRetrieveValues(hash) {
+        const vals = await this.redis.hVals(hash);
+        const parsedVals = [];
+
+        for (const val of vals) {
+            parsedVals.push(JSON.parse(val));
+        }
+
+        return parsedVals;
     }
 
     async fetch(key) {
@@ -197,7 +184,7 @@ class Database {
         return this.redis.hDel(hash, key);
     }
 
-    async hashDeletes(hash, ...keys) {
+    async hashDeletes(hash, ...keys) { 
         return this.redis.hDel(hash, keys);
     }
 

@@ -5,7 +5,7 @@ const { TreasureHunt } = require('../../bot');
 async function isValidSpace(_, arg) {
     const [x, y] = arg;
 
-    if (x >= TreasureHunt.getWidth() || y >= TreasureHunt.getLength()) {
+    if (x >= TreasureHunt.length || y >= TreasureHunt.width) {
         throw 'That space is outside the game area.';
     }
 }

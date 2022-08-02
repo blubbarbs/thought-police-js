@@ -22,7 +22,7 @@ async function execute(interaction, args) {
         allDeltaPoints[member.id] = Math.round(pointPrize * .3);
     }
 
-    await PointsHandler.data.adds(allDeltaPoints);
+    await PointsHandler.points.adds(allDeltaPoints);
     await PointsHandler.updateLeaderboard();
     await interaction.editReply('Gave points to all listed members.');
 }

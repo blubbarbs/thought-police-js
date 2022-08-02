@@ -2,7 +2,7 @@ require('dotenv').config();
 process.env.TZ = 'America/Los_Angeles';
 
 const path = require('node:path');
-const { client, database, TreasureHunt } = require('./bot');
+const { client, database, TreasureHunt} = require('./bot');
 const { MudaeHandler } = require('./handlers/mudae_handler');
 const { CommandHandler } = require('./handlers/command_handler');
 

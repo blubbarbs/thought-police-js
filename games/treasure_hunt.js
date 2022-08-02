@@ -16,7 +16,7 @@ const JACKPOT_PROBABILITY = .05;
 
 class TreasureHuntGame extends GridGame {
     constructor(database) {
-        super('treasure_hunt', database, GRID_LENGTH, GRID_WIDTH);
+        super('treasure_hunt_test', database, GRID_LENGTH, GRID_WIDTH);
     }
         
     getMinutesTillNextDig(id) {
@@ -73,13 +73,13 @@ class TreasureHuntGame extends GridGame {
     }
 
     getTreasureTilesLeft() {
-        return this.gridData.getNamespace('treasure').cache.size;
+        return this.gridData.getNamespace('treasure').size;
     }
 
     getTreasuresLeft(treasureName) {
         let left = 0;
 
-        for (const treasure of this.gridData.getNamespace('treasure').cache.values()) {
+        for (const treasure of this.gridData.getNamespace('treasure').values()) {
             left += treasure[treasureName] || 0;
         }
 
@@ -88,7 +88,6 @@ class TreasureHuntGame extends GridGame {
 
     distributeTreasure(numRolls, treasureName, treasureAmountGenerator) {
         for (let i = 0; i < numRolls; i++) {
-            console.log(this.randomTile());
             const [x, y] = this.randomTile();
             const treasure = this.getTileData('treasure', x, y) || {};
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(x, y) : treasureAmountGenerator;
@@ -113,11 +112,19 @@ class TreasureHuntGame extends GridGame {
         this.setTileData('is_dug', x, y, true);
     
         return treasure;
-    }    
+    }
+
+    async loadGame() {
+        await super.loadGame();
+
+        if (this.isJackpot()) {
+            this.setDefaultTileDisplay('🟨');
+        }
+    }
 
     async newGame() {
-        this.playerData.getNamespace('last_dig_time').cacheClear();
-        this.gridData.cacheClear(true);
+        this.playerData.getNamespace('last_dig_time').clear();
+        this.gridData.clearDeep();
         
         if (roll(JACKPOT_PROBABILITY)) {
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
