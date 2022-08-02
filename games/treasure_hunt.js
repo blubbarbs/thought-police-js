@@ -16,7 +16,7 @@ const JACKPOT_PROBABILITY = .05;
 
 class TreasureHuntGame extends GridGame {
     constructor(database) {
-        super('treasure_hunt_test', database, GRID_LENGTH, GRID_WIDTH);
+        super('treasure_hunt', database, GRID_LENGTH, GRID_WIDTH);
     }
         
     getMinutesTillNextDig(id) {
