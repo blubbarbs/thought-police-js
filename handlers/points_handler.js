@@ -38,7 +38,7 @@ class PointsHandler {
     }
     
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {    
-        const points = await this.data.add(id, deltaPoints);
+        const points = await this.points.add(id, deltaPoints);
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
