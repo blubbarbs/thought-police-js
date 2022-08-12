@@ -50,6 +50,13 @@ class TreasureHuntGame extends GridGame {
         return this.getData('jackpot') == true;
     }
 
+    calculateChestPercentage() {
+        const numChests = this.getTreasureTilesLeft();
+        const numSpaces = this.width * this.length;
+
+        return (numChests / numSpaces) * 100;
+    }
+
     getBoardEmbed() {
         const embed = {
             color: this.isJackpot() ? '#ebf2a0' : '#bccbeb',
@@ -63,6 +70,11 @@ class TreasureHuntGame extends GridGame {
                 {
                     name: 'Treasure Chests Left',
                     value: `${this.getTreasureTilesLeft()} chest(s)`,
+                    inline: false
+                },
+                {
+                    name: 'Chest Chance',
+                    value: `${this.calculateChestPercentage().toFixed(2)}%`,
                     inline: false
                 }
             ],
