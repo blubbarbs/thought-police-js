@@ -52,7 +52,7 @@ class TreasureHuntGame extends GridGame {
 
     calculateChestPercentage() {
         const numChests = this.getTreasureTilesLeft();
-        const numFreeSpaces = this.findTiles((x, y) => !this.getTileData('is_dug', x, y));
+        const numFreeSpaces = this.findTiles((x, y) => !this.getTileData('is_dug', x, y)).length;
 
         return (numChests / numFreeSpaces) * 100;
     }
