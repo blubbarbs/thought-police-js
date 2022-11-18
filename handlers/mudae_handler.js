@@ -26,27 +26,28 @@ class MudaeHandler {
         const mudaeChannel = await this.getMudaeChannel();
     
         if (enable) {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { VIEW_CHANNEL: null });
-            await this.updateCurfew();
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: false, USE_APPLICATION_COMMANDS: null });
         }
         else {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { VIEW_CHANNEL: false });
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { USE_APPLICATION_COMMANDS: false });
         }
+
+        await this.updateCurfew();
     }
     
     static async applyCurfew(apply) {
         const mudaeChannel = await this.getMudaeChannel();
-        const isCurfewEnabled = !mudaeChannel.permissionsFor(EVERYONE_ROLE_ID).has(Permissions.FLAGS.USE_APPLICATION_COMMANDS);
-        const isMudaeEnabled = mudaeChannel.permissionsFor(EVERYONE_ROLE_ID).has(Permissions.FLAGS.VIEW_CHANNEL);
+        const isCurfewEnabled = !mudaeChannel.permissionsFor(EVERYONE_ROLE_ID).has(Permissions.FLAGS.SEND_MESSAGES);
+        const isMudaeEnabled = mudaeChannel.permissionsFor(EVERYONE_ROLE_ID).has(Permissions.FLAGS.USE_APPLICATION_COMMANDS);
     
         if (!isMudaeEnabled) return;
     
         if (apply && !isCurfewEnabled) {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: false, USE_APPLICATION_COMMANDS: false });
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: false });
             await mudaeChannel.send('`This channel is now closed. Mudae will resume at 9 A.M.`');
         }
         else if (!apply && isCurfewEnabled) {
-            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: null, USE_APPLICATION_COMMANDS: null });
+            await mudaeChannel.permissionOverwrites.edit(EVERYONE_ROLE_ID, { SEND_MESSAGES: null });
             await mudaeChannel.send('`This channel has been re-opened. Mudae will close at 12 A.M.`');
         }
     }
