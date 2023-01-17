@@ -26,7 +26,7 @@ async function getGuild() {
 
 module.exports = {
     client: client,
-    database: database,
+    redis: redis,
     UserData: UserData,
     ServerSettings: ServerSettings,
     TreasureHunt: TreasureHunt,
