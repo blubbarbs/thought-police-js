@@ -18,7 +18,7 @@ const JACKPOT_PROBABILITY = .05;
 
 class TreasureHuntGame extends GridGame {
     constructor(redis) {
-        super(GAME_NAME, redis, GRID_LENGTH, GRID_WIDTH);
+        super(GAME_NAME, redis);
 
         this.tileTreasureData = new RedisStore(redis, GAME_NAME, 'tile_treasure');
     }
