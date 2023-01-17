@@ -29,11 +29,21 @@ class GridGame extends Game {
         this.tileData = new RedisStore(redis, name, 'tile_data');
         this.tileDisplayData = new RedisCache(redis, name, 'tile_display');
 
-        this.settings.set('length', length);
-        this.settings.set('width', width);
-        this.length = length;
-        this.width = width;
-        this.defaultTileDisplay = defaultTileDisplay;
+        this.settings.set('length', 10);
+        this.settings.set('width', 10);
+        this.settings.set('default_tile_display', '🔲');
+    }
+
+    get length() {
+        return this.settings.get('length');
+    }
+
+    get width() {
+        return this.settings.get('width');
+    }
+
+    get defaultTileDisplay() {
+        return this.settings.get('default_tile_display');
     }
 
     findTiles(predicate) {
@@ -81,7 +91,7 @@ class GridGame extends Game {
             str += getLetterEmoji(y);
 
             for (let x = 0; x < this.length; x++) {
-                const display = this.tileDisplayData.get(Point.toString(x, y)) || defaultDisplay;
+                const display = this.tileDisplayData.get([x, y]) || this.defaultTileDisplay;
 
                 str += display;
             }

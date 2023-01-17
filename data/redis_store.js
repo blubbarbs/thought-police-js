@@ -30,8 +30,12 @@ class RedisCache {
     }
 
     set(key, value) {
-        this.cache.set(key, value);
-        this.dirtyKeys.add(key);
+        const oldValue = this.get(key);
+
+        if (oldValue != value) {
+            this.cache.set(key, value);
+            this.dirtyKeys.add(key);
+        }
     }
 
     add(key, value) {
