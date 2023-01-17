@@ -33,7 +33,7 @@ class CommandHandler {
             client.commands.set(command.name, command);
         }
 
-        await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: discordAPICommands });
+        await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: client.commands });
         console.log('All commands loaded.');
     }
 }
