@@ -4,9 +4,9 @@ const { TreasureHunt } = require('../../../bot');
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
 
-    TreasureHunt.clearPlayerData('last_dig_time', target.id);
+    TreasureHunt.playerData.delete(target.id, 'last_dig_time');
     await TreasureHunt.saveGame();
-    
+
     if (target == interaction.member) {
         await interaction.reply({ content: `Successfully refreshed your dig cycle.`, ephemeral: true });
     }

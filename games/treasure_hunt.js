@@ -1,6 +1,8 @@
+const { RedisStore } = require('../data/redis_store.js');
 const { GridGame } = require('../game/gridgame.js');
 const { randomGaussian, randomInt, roll } = require('../util/random.js');
 
+const GAME_NAME = 'treasure_hunt';
 const GRID_LENGTH = 10;
 const GRID_WIDTH = 10;
 const COOLDOWN_TIMER_MINS = 1200;
@@ -15,44 +17,50 @@ const MAX_POINTS_JACKPOT = 100;
 const JACKPOT_PROBABILITY = .05;
 
 class TreasureHuntGame extends GridGame {
-    constructor(database) {
-        super('treasure_hunt', database, GRID_LENGTH, GRID_WIDTH);
+    constructor(redis) {
+        super(GAME_NAME, redis, GRID_LENGTH, GRID_WIDTH);
+
+        this.tileTreasureData = new RedisStore(redis, GAME_NAME, 'tile_treasure');
     }
-        
+
     getMinutesTillNextDig(id) {
-        const lastDigTime = this.getPlayerData('last_dig_time', id);
-    
+        const lastDigTime = this.playerData.get(id, 'last_dig_time');
+
         if (lastDigTime != null) {
             const msDifference = Date.now() - lastDigTime;
             const minutesDifference = Math.floor(msDifference / 60000);
             const minutesTill = COOLDOWN_TIMER_MINS - minutesDifference;
-    
+
             return minutesTill > 0 ? minutesTill : 0;
         }
         else {
             return 0;
         }
     }
-    
-    getFreeDigs(id) {
-        return this.getPlayerData('free_digs', id) || 0;
-    }
-    
-    addFreeDigs(id, deltaDigs) {
-        this.setPlayerData('free_digs', id, this.getFreeDigs(id) + deltaDigs);
+
+    getTreasureTilesLeft() {
+        const treasureTiles = this.findTiles((x, y) => this.tileTreasureData.hasID([x, y]));
+
+        return treasureTiles.length;
     }
 
-    hasUsedDailyDig(id) {
-        return this.getMinutesTillNextDig(id) > 0;
-    }
-    
-    isJackpot() {
-        return this.getData('jackpot') == true;
+    getTreasuresLeft(treasureName) {
+        let left = 0;
+
+        for (const [x, y] of this.tiles()) {
+            const treasureAmount = this.tileTreasureData.get([x, y], treasureName);
+
+            if (treasureAmount != null && treasureAmount > 0) {
+                left += treasureAmount;
+            }
+        }
+
+        return left;
     }
 
     calculateChestPercentage() {
         const numChests = this.getTreasureTilesLeft();
-        const numFreeSpaces = this.findTiles((x, y) => !this.getTileData('is_dug', x, y)).length;
+        const numFreeSpaces = this.findTiles((x, y) => this.tileData.get([x, y], 'is_dug') != true);
 
         return (numChests / numFreeSpaces) * 100;
     }
@@ -80,78 +88,60 @@ class TreasureHuntGame extends GridGame {
             ],
             description: this.toString()
         }
-    
+
         return embed;
-    }
-
-    getTreasureTilesLeft() {
-        return this.gridData.getNamespace('treasure').size;
-    }
-
-    getTreasuresLeft(treasureName) {
-        let left = 0;
-
-        for (const treasure of this.gridData.getNamespace('treasure').values()) {
-            left += treasure[treasureName] || 0;
-        }
-
-        return left;
     }
 
     distributeTreasure(numRolls, treasureName, treasureAmountGenerator) {
         for (let i = 0; i < numRolls; i++) {
             const [x, y] = this.randomTile();
-            const treasure = this.getTileData('treasure', x, y) || {};
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(x, y) : treasureAmountGenerator;
 
-            treasure[treasureName] = treasureName in treasure ? treasure[treasureName] + treasureAmount : treasureAmount;
-            this.setTileData('treasure', x, y, treasure);
+            this.tileTreasureData.add([x, y], treasureName, treasureAmount);
         }
     }
 
     dig(id, x, y) {
-        const treasure = this.getTileData('treasure', x, y);
-    
-        if (treasure != null) {
-            this.setTileDisplay(x, y, '⭕');
-            this.clearTileData('treasure', x, y);
+        const tileID = [x, y];
+        const treasure = this.tileTreasureData.gets(tileID);
+
+        if (this.tileTreasureData.hasID(tileID)) {
+            this.tileDisplayData.set(tileID, '⭕');
+            this.tileTreasureData.delete(tileID);
         }
         else {
-            this.setTileDisplay(x, y, '✖️');
+            this.tileDisplayData.set(tileID, '✖️');
         }
-    
-        this.setPlayerData('last_dig_time', id, Date.now());
-        this.setTileData('is_dug', x, y, true);
-    
+
+        this.playerData.set(id, 'last_dig_time', Date.now());
+        this.tileData.set(tileID, 'is_dug', true);
+
         return treasure;
     }
 
-    async loadGame() {
-        await super.loadGame();
-
-        if (this.isJackpot()) {
-            this.setDefaultTileDisplay('🟨');
-        }
-    }
-
     async newGame() {
-        this.playerData.getNamespace('last_dig_time').clear();
-        this.gridData.clearDeep();
-        
+        this.playerData.stores.get('last_dig_time').clear();
+        this.tileData.clear();
+        this.tileDisplayData.clear();
+
+        this.settings.set('length', GRID_LENGTH);
+        this.settings.set('width', GRID_WIDTH);
+        this.settings.set('default_tile_display', '🔲');
+
         if (roll(JACKPOT_PROBABILITY)) {
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
             const numFreeDigRolls = randomInt(MAX_FREEDIG_ROLLS, MIN_FREEDIG_ROLLS) * 2;
 
             this.distributeTreasure(1, 'points', jackpotAmount);
             this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
-            this.setData('jackpot', true);
-            this.setData('default_tile_display', '🟨');
+            this.settings.set('jackpot', true);
+            this.settings.set('default_tile_display', '🟨');
         }
         else {
             const numPointRolls = randomInt(MAX_POINT_ROLLS, MIN_POINT_ROLLS);
             const averagePoints = randomInt(MAX_POINTS, MIN_POINTS) / numPointRolls;
             const numFreeDigRolls = randomInt(MAX_FREEDIG_ROLLS, MIN_FREEDIG_ROLLS);
-            
+
             this.distributeTreasure(numPointRolls, 'points', () => Math.round(randomGaussian(averagePoints, averagePoints * .2)));
             this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
         }

@@ -1,72 +1,74 @@
 const { randomInt } = require("../util/random");
 const { getNumberEmoji, getLetterEmoji } = require('../util/emoji');
+const { toCoordinates, toAlphanumeric } = require('../util/grid_coords');
 const { Game } = require("./game");
+const { RedisStore, RedisCache } = require("../data/redis_store");
+
+class Point {
+    static toString(x, y) {
+        return `${x},${y}`;
+    }
+
+    static fromString(string) {
+        return Point.fromCoordinates(...string.split(','));
+    }
+
+    static fromCoordinates(x, y) {
+        return [+x, +y];
+    }
+
+    static fromAlphanumeric(alphanumeric) {
+        return toCoordinates(alphanumeric);
+    }
+}
 
 class GridGame extends Game {
-    constructor(name, data, length, width, defaultDisplay = '🔲' ) {
-        super(name, data);
+    constructor(name, redis) {
+        super(name, redis);
 
-        this.gridData = this.gameData.getNamespace('grid_data');
+        this.tileData = new RedisStore(redis, name, 'tile_data');
+        this.tileDisplayData = new RedisCache(redis, name, 'tile_display');
+
+        this.settings.set('length', length);
+        this.settings.set('width', width);
         this.length = length;
         this.width = width;
-        this.defaultDisplay = defaultDisplay;
-    }
-
-    getTileData(key, x, y) {
-        return this.gridData.get(key, `${x},${y}`);
-    }
-
-    setTileData(key, x, y, value) {
-        this.gridData.set(key, `${x},${y}`, value);
-    }
-
-    clearTileData(key, x, y) {
-        this.gridData.delete(key, `${x},${y}`);
-    }
-
-    getTileDisplay(x, y) {
-        return this.getTileData('display', x, y) || this.defaultDisplay;
-    }
-
-    setDefaultTileDisplay(display) {
-        this.gameData.set('default_tile_display', display);
-    }
-
-    setTileDisplay(x, y, display) {
-        this.setTileData('display', x, y, display);
+        this.defaultTileDisplay = defaultTileDisplay;
     }
 
     findTiles(predicate) {
-        const tiles = [];
+        const filteredTiles = [];
 
-        for (const [x, y] of this.tiles()) {
-            if (predicate == null || predicate(x, y)) {
-                tiles.push([x, y]);
-            }                
+        for (let y = 0; y < this.width; y++) {
+            for (let x = 0; x < this.length; x++) {
+                if (predicate == null || predicate(x, y)) {
+                    filteredTiles.push([x, y]);
+                }
+            }
         }
 
-        return tiles;
+        return filteredTiles;
     }
 
     randomTiles(amount, predicate) {
-        const tilePool = this.findTiles(predicate);      
+        const tilePool = this.findTiles(predicate);
         const tiles = [];
-    
+
         for (let i = 0; i < amount; i++) {
             const randomIndex = randomInt(tilePool.length - 1);
             const tile = tilePool.splice(randomIndex, 1);
-    
+
             tiles.push(tile[0]);
         }
-    
+
         return tiles;
     }
-    
+
     randomTile(predicate) {
         return this.randomTiles(1, predicate)[0];
     }
 
-    toString() {
+    getGridString() {
         let str = '↘️';
 
         for (let x = 0; x < this.length; x++) {
@@ -79,14 +81,14 @@ class GridGame extends Game {
             str += getLetterEmoji(y);
 
             for (let x = 0; x < this.length; x++) {
-                const display = this.getTileDisplay(x, y);
+                const display = this.tileDisplayData.get(Point.toString(x, y)) || defaultDisplay;
 
                 str += display;
             }
-            
+
             str += '\n';
         }
-    
+
         return str;
     }
 
@@ -100,5 +102,6 @@ class GridGame extends Game {
 }
 
 module.exports = {
-    GridGame: GridGame
+    GridGame: GridGame,
+    Point: Point
 }

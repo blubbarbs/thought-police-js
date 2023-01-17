@@ -1,5 +1,9 @@
 const gridCoordinatesRegex = /([0-9]+|[A-Za-z]+)([0-9]+|[A-Za-z]+)?/;
 
+function toID(x, y) {
+    return `${x},${y}`;
+}
+
 function toAlphanumeric(x, y) {
     return `${String.fromCharCode(y + 65)}${x}`;
 }
@@ -36,6 +40,7 @@ function toCoordinates(alphanumeric) {
 }
 
 module.exports = {
+    toID: toID,
     toAlphanumeric: toAlphanumeric,
     toCoordinates:toCoordinates
 }

@@ -1,41 +1,41 @@
+const { RedisCache, RedisStore } = require('../data/redis_store.js');
+
 class Game {
-    constructor(name, data) {
+    constructor(name, redis) {
         this.name = name;
-        this.gameData = data.getNamespace(name);
-        this.playerData = this.gameData.getNamespace('player_data');
-    }
-
-    getData(key) {
-        return this.gameData.get(key);
-    }
-
-    setData(key, value) {
-        this.gameData.set(key, value);
-    }
-
-    clearData(key) {
-        this.gameData.delete(key);
-    }
-
-    getPlayerData(key, id) {
-        return this.playerData.get(key, id);
-    }
-
-    setPlayerData(key, id, value) {
-        this.playerData.set(key, id, value);
-    }
-
-    clearPlayerData(key, id) {
-        this.playerData.delete(key, id);
+        this.settings = new RedisCache(redis, name, 'settings');
+        this.playerData = new RedisStore(redis, name, 'player_data');
     }
 
     async saveGame() {
-        await this.gameData.saveDeep();
+        const promises = [];
+
+        for (const [key, value] of Object.entries(this)) {
+            if (value instanceof RedisCache || value instanceof RedisStore) {
+                promises.push(value.sync());
+            }
+        }
+
+        await Promise.all(promises);
     }
 
     async loadGame() {
-        await this.gameData.loadDeep();
+        const promises = [];
+
+        for (const [key, value] of Object.entries(this)) {
+            if (value instanceof RedisCache || value instanceof RedisStore) {
+                promises.push(value.fetch());
+            }
+        }
+
+        await Promise.all(promises);
     }
+
+    async newGame() {}
+
+    async startGame() {}
+
+    async endGame() {}
 }
 
 module.exports = {

@@ -1,4 +1,4 @@
-const { toAlphanumeric } = require('../../util/grid_coords'); 
+const { toID, toAlphanumeric } = require('../../util/grid_coords');
 const { PointsHandler } = require('../../handlers/points_handler');
 const { TreasureHunt } = require('../../bot');
 
@@ -14,7 +14,7 @@ async function isFreeSpace(_, arg) {
     await isValidSpace(_, arg);
 
     const [x, y] = arg;
-    const isDug = TreasureHunt.getTileData('is_dug', x, y);
+    const isDug = TreasureHunt.tileData.get(toID(x, y), 'is_dug');
 
     if (isDug) {
         throw 'That space has already been dug up.';
@@ -23,7 +23,7 @@ async function isFreeSpace(_, arg) {
 
 async function canDig(interaction) {
     if (!TreasureHunt.hasUsedDailyDig(interaction.member.id)) return;
-    
+
     const minutesTillDailyDig = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
     const hours = Math.floor(minutesTillDailyDig / 60);
     const minutes = minutesTillDailyDig % 60;
