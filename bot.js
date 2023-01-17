@@ -15,6 +15,7 @@ const client = new Client({ intents: clientIntents });
 
 // Server Stores
 const UserData = new RedisStore(redis, 'user_data');
+const RoleData = new RedisStore(redis, 'role_data');
 const ServerSettings = new RedisCache(redis, 'server_settings');
 
 // Games
@@ -28,6 +29,7 @@ module.exports = {
     client: client,
     redis: redis,
     UserData: UserData,
+    RoleData: RoleData,
     ServerSettings: ServerSettings,
     TreasureHunt: TreasureHunt,
     getGuild: getGuild

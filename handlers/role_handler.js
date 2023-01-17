@@ -1,12 +1,8 @@
-const { remoteData, getGuild } = require('../bot.js');
+const { RoleData, getGuild } = require('../bot.js');
 
 const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
 
 class RoleHandler {
-    static {
-        this.roleData = remoteData.getNamespace('role_info');
-    }
-
     static async getAnnoucementChannel() {
         const guild = await getGuild();
         const channel = await guild.channels.fetch(ANNOUNCEMENT_CHANNEL_ID);
