@@ -8,7 +8,6 @@ class Redis1DStore extends RedisStore {
 
         this.docName = docName;
         this.redis = redis;
-        this.namespace = ['', ...namespace];
         this.cache = new Collection();
         this.dirtyKeys = new Set();
     }
@@ -58,8 +57,6 @@ class Redis1DStore extends RedisStore {
     }
 
     async fetch() {
-        console.log('FULL PATH: ' + this.getFullPath());
-
         const data = await this.redis.hGetAll(this.docName);
 
         this.cache.clear();
@@ -95,12 +92,16 @@ class Redis1DStore extends RedisStore {
 }
 
 class Redis2DStore extends RedisStore {
-    constructor(redis, docName) {
+    constructor(redis, name) {
         super();
 
-        this.docName = docName;
+        this.name = name;
         this.redis = redis;
         this.stores = new Collection();
+    }
+
+    _getNewSubstore(key) {
+        return new Redis1DStore(this.redis, `${this.name}:${key}`)
     }
 
     keys() {
@@ -143,7 +144,7 @@ class Redis2DStore extends RedisStore {
 
     set(id, key, value) {
         if (!this.stores.has(key)) {
-            this.stores.set(key, new Redis1DStore(this.redis, this.docName, key));
+            this.stores.set(key, this._getNewSubstore(key));
         }
 
         this.stores.get(key).set(id, value);
@@ -161,7 +162,7 @@ class Redis2DStore extends RedisStore {
 
     add(id, key, value) {
         if (!this.stores.has(key)) {
-            this.stores.set(key, new Redis1DStore(this.redis, this.docName, key));
+            this.stores.set(key, this._getNewSubstore(key));
         }
 
         this.stores.get(key).add(id, value);
@@ -199,13 +200,14 @@ class Redis2DStore extends RedisStore {
     async fetch() {
         this.stores.clear();
 
-        console.log('NAME: ' + this.docName);
+        console.log('NAME: ' + this.name);
         if (keys.length == 0) return;
 
         const promises = [];
 
-        for await (const key of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
-            const store = new Redis1DStore(this.redis, this.docName, key);
+        for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
+            const store = new Redis1DStore(this.redis, redisKey);
+            const key = redisKey.split(':')[1];
 
             this.stores.set(key, store);
             promises.push(store.fetch());
