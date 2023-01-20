@@ -12,8 +12,6 @@ class Game {
 
         for (const [key, value] of Object.entries(this)) {
             if (value instanceof RedisStore) {
-                console.log('SAVING: ' + key);
-
                 promises.push(value.sync());
             }
         }

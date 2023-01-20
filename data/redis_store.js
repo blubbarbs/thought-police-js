@@ -6,7 +6,7 @@ class Redis1DStore extends RedisStore {
     constructor(redis, ...namespace) {
         super();
 
-        this.docName = namespace.join(',');
+        this.docName = namespace.join(':');
         this.redis = redis;
         this.cache = new Collection();
         this.dirtyKeys = new Set();
@@ -204,7 +204,10 @@ class Redis2DStore extends RedisStore {
 
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
             const store = new Redis1DStore(this.redis, redisKey);
-            const key = redisKey.split(':')[1];
+            const namespace = redisKey.split(':');
+            const key = namespace[namespace.length - 1];
+
+            console.log(`FOUND ${namespace} NAMESPACE. KEY: ${key}`);
 
             this.stores.set(key, store);
             promises.push(store.fetch());
