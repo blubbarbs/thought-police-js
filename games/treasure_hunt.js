@@ -39,7 +39,7 @@ class TreasureHuntGame extends GridGame {
     }
 
     getTreasureTilesLeft() {
-        const treasureTiles = this.findTiles((x, y) => this.tileTreasureData.hasID([x, y]));
+        const treasureTiles = this.findTiles((x, y, tileID) => this.tileTreasureData.hasID(tileID));
 
         return treasureTiles.length;
     }
@@ -47,8 +47,8 @@ class TreasureHuntGame extends GridGame {
     getTreasuresLeft(treasureName) {
         let left = 0;
 
-        for (const [x, y] of this.tiles()) {
-            const treasureAmount = this.tileTreasureData.get([x, y], treasureName);
+        for (const tileID of this.tiles()) {
+            const treasureAmount = this.tileTreasureData.get(tileID, treasureName);
 
             if (treasureAmount != null && treasureAmount > 0) {
                 left += treasureAmount;
@@ -60,7 +60,7 @@ class TreasureHuntGame extends GridGame {
 
     calculateChestPercentage() {
         const numChests = this.getTreasureTilesLeft();
-        const numFreeSpaces = this.findTiles((x, y) => this.tileData.get([x, y], 'is_dug') != true);
+        const numFreeSpaces = this.findTiles((x, y, tileID) => this.tileData.get(tileID, 'is_dug') != true);
 
         return (numChests / numFreeSpaces) * 100;
     }
@@ -94,15 +94,15 @@ class TreasureHuntGame extends GridGame {
 
     distributeTreasure(numRolls, treasureName, treasureAmountGenerator) {
         for (let i = 0; i < numRolls; i++) {
-            const [x, y] = this.randomTile();
-            const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(x, y) : treasureAmountGenerator;
+            const tileID = this.randomTile();
+            const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(tileID) : treasureAmountGenerator;
 
-            this.tileTreasureData.add([x, y], treasureName, treasureAmount);
+            this.tileTreasureData.add(tileID, treasureName, treasureAmount);
         }
     }
 
     dig(id, x, y) {
-        const tileID = [x, y];
+        const tileID = [x, y].toString();
         const treasure = this.tileTreasureData.gets(tileID);
 
         if (this.tileTreasureData.hasID(tileID)) {

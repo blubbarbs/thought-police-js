@@ -51,8 +51,10 @@ class GridGame extends Game {
 
         for (let y = 0; y < this.width; y++) {
             for (let x = 0; x < this.length; x++) {
-                if (predicate == null || predicate(x, y)) {
-                    filteredTiles.push([x, y]);
+                const tileID = [x, y].toString();
+
+                if (predicate == null || predicate(x, y, tileID)) {
+                    filteredTiles.push(tileID);
                 }
             }
         }
@@ -91,7 +93,8 @@ class GridGame extends Game {
             str += getLetterEmoji(y);
 
             for (let x = 0; x < this.length; x++) {
-                const display = this.tileDisplayData.get([x, y]) || this.defaultTileDisplay;
+                const tileID = [x, y].toString();
+                const display = this.tileDisplayData.get(tileID) || this.defaultTileDisplay;
 
                 str += display;
             }
@@ -105,7 +108,7 @@ class GridGame extends Game {
     *tiles() {
         for (let y = 0; y < this.width; y++) {
             for (let x = 0; x < this.length; x++) {
-                yield [x, y];
+                yield [x, y].toString();
             }
         }
     }

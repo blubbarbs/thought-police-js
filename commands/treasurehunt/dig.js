@@ -13,8 +13,8 @@ async function isValidSpace(_, arg) {
 async function isFreeSpace(_, arg) {
     await isValidSpace(_, arg);
 
-    const [x, y] = arg;
-    const isDug = TreasureHunt.tileData.get(toID(x, y), 'is_dug');
+    const tileID = arg.toString();
+    const isDug = TreasureHunt.tileData.get(tileID, 'is_dug');
 
     if (isDug) {
         throw 'That space has already been dug up.';
