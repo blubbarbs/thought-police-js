@@ -67,7 +67,7 @@ class TreasureHuntGame extends GridGame {
 
     getBoardEmbed() {
         const embed = {
-            color: this.isJackpot() ? '#ebf2a0' : '#bccbeb',
+            color: this.settings.get('jackpot') ? '#ebf2a0' : '#bccbeb',
             title: 'Treasure Hunt!',
             fields: [
                 {

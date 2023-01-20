@@ -3,10 +3,10 @@ const { Collection } = require("discord.js");
 class RedisStore {}
 
 class Redis1DStore extends RedisStore {
-    constructor(redis, docName) {
+    constructor(redis, ...namespace) {
         super();
 
-        this.docName = docName;
+        this.docName = namespace.join(',');
         this.redis = redis;
         this.cache = new Collection();
         this.dirtyKeys = new Set();
@@ -92,10 +92,10 @@ class Redis1DStore extends RedisStore {
 }
 
 class Redis2DStore extends RedisStore {
-    constructor(redis, name) {
+    constructor(redis, ...namespace) {
         super();
 
-        this.name = name;
+        this.name = namespace.join(':');
         this.redis = redis;
         this.stores = new Collection();
     }
