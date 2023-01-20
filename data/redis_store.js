@@ -81,10 +81,10 @@ class Redis1DStore extends RedisStore {
             let promise;
 
             if (this.cache.has(key)) {
-                promise = this.redis.json.set(this.name, this.getFullPath(key), this.cache.get(key));
+                promise = this.redis.json.set(this.docName, this.getFullPath(key), this.cache.get(key));
             }
             else {
-                promise = this.redis.join.del(this.name, this.getFullPath(key));
+                promise = this.redis.join.del(this.docName, this.getFullPath(key));
             }
 
             promises.push(promise);
@@ -201,8 +201,8 @@ class Redis2DStore extends RedisStore {
     async fetch() {
         this.stores.clear();
 
-        console.log('NAME: ' + this.name);
-        const keys = await this.redis.json.objKeys(this.name, { path: '$' });
+        console.log('NAME: ' + this.docName);
+        const keys = await this.redis.json.objKeys(this.docName, { path: '$' });
 
         console.log('KEYS: ' + keys);
         if (keys.length == 0) return;
