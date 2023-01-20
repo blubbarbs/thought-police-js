@@ -202,7 +202,7 @@ class Redis2DStore extends RedisStore {
         this.stores.clear();
 
         console.log('NAME: ' + this.docName);
-        const keys = await this.redis.json.objKeys(this.docName, { path: '$' });
+        const keys = await this.redis.json.objKeys(this.docName, '$');
 
         console.log('KEYS: ' + keys);
         if (keys.length == 0) return;
