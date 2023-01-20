@@ -1,4 +1,4 @@
-const { toID, toAlphanumeric } = require('../../util/grid_coords');
+const { toAlphanumeric } = require('../../util/grid_coords');
 const { PointsHandler } = require('../../handlers/points_handler');
 const { TreasureHunt } = require('../../bot');
 

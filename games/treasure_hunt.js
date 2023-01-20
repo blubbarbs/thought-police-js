@@ -120,7 +120,7 @@ class TreasureHuntGame extends GridGame {
     }
 
     async newGame() {
-        this.playerData.stores.get('last_dig_time').clear();
+        this.playerData.stores.get('last_dig_time')?.clear();
         this.tileData.clear();
         this.tileDisplayData.clear();
 
