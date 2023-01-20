@@ -1,6 +1,6 @@
 const { Collection } = require("discord.js");
 
-class RedisCache {
+class Redis1DStore {
     constructor(redis, docName, ...namespace) {
         this.docName = docName;
         this.redis = redis;
@@ -92,7 +92,7 @@ class RedisCache {
     }
 }
 
-class RedisStore {
+class Redis2DStore {
     constructor(redis, docName) {
         this.docName = docName;
         this.redis = redis;
@@ -139,7 +139,7 @@ class RedisStore {
 
     set(id, key, value) {
         if (!this.stores.has(key)) {
-            this.stores.set(key, new RedisCache(this.redis, this.docName, key));
+            this.stores.set(key, new Redis1DStore(this.redis, this.docName, key));
         }
 
         this.stores.get(key).set(id, value);
@@ -157,7 +157,7 @@ class RedisStore {
 
     add(id, key, value) {
         if (!this.stores.has(key)) {
-            this.stores.set(key, new RedisCache(this.redis, this.docName, key));
+            this.stores.set(key, new Redis1DStore(this.redis, this.docName, key));
         }
 
         this.stores.get(key).add(id, value);
@@ -202,7 +202,7 @@ class RedisStore {
         const promises = [];
 
         for (const key of keys) {
-            const store = new RedisStore(this.redis, this.docName, key);
+            const store = new Redis2DStore(this.redis, this.docName, key);
 
             this.stores.set(key, store);
             promises.push(store.fetch());
@@ -223,6 +223,6 @@ class RedisStore {
 }
 
 module.exports = {
-    RedisStore: RedisStore,
-    RedisCache: RedisCache
+    Redis1DStore: Redis1DStore,
+    Redis2DStore: Redis2DStore
 }

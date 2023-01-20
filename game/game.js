@@ -1,10 +1,10 @@
-const { RedisCache, RedisStore } = require('../data/redis_store.js');
+const { Redis1DStore, Redis2DStore } = require('../data/redis_store.js');
 
 class Game {
     constructor(name, redis) {
         this.name = name;
-        this.settings = new RedisCache(redis, name, 'settings');
-        this.playerData = new RedisStore(redis, name, 'player_data');
+        this.settings = new Redis1DStore(redis, name, 'settings');
+        this.playerData = new Redis2DStore(redis, name, 'player_data');
     }
 
     async saveGame() {

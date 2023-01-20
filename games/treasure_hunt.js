@@ -1,4 +1,4 @@
-const { RedisStore } = require('../data/redis_store.js');
+const { Redis2DStore } = require('../data/redis_store.js');
 const { GridGame } = require('../game/gridgame.js');
 const { randomGaussian, randomInt, roll } = require('../util/random.js');
 
@@ -20,7 +20,7 @@ class TreasureHuntGame extends GridGame {
     constructor(redis) {
         super(GAME_NAME, redis);
 
-        this.tileTreasureData = new RedisStore(redis, GAME_NAME, 'tile_treasure');
+        this.tileTreasureData = new Redis2DStore(redis, GAME_NAME, 'tile_treasure');
     }
 
     getMinutesTillNextDig(id) {
