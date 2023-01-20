@@ -1,6 +1,8 @@
 const { Collection } = require("discord.js");
 
-class Redis1DStore {
+class RedisStore {}
+
+class Redis1DStore extends RedisStore {
     constructor(redis, docName, ...namespace) {
         this.docName = docName;
         this.redis = redis;
@@ -92,7 +94,7 @@ class Redis1DStore {
     }
 }
 
-class Redis2DStore {
+class Redis2DStore extends RedisStore {
     constructor(redis, docName) {
         this.docName = docName;
         this.redis = redis;
@@ -223,6 +225,7 @@ class Redis2DStore {
 }
 
 module.exports = {
+    RedisStore: RedisStore,
     Redis1DStore: Redis1DStore,
     Redis2DStore: Redis2DStore
 }

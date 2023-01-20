@@ -1,4 +1,4 @@
-const { Redis1DStore, Redis2DStore } = require('../data/redis_store.js');
+const { RedisStore, Redis1DStore, Redis2DStore } = require('../data/redis_store.js');
 
 class Game {
     constructor(name, redis) {
@@ -11,7 +11,7 @@ class Game {
         const promises = [];
 
         for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisCache || value instanceof RedisStore) {
+            if (value instanceof RedisStore) {
                 promises.push(value.sync());
             }
         }
@@ -23,7 +23,7 @@ class Game {
         const promises = [];
 
         for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisCache || value instanceof RedisStore) {
+            if (value instanceof RedisStore) {
                 promises.push(value.fetch());
             }
         }
