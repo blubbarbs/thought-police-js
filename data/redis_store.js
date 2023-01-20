@@ -201,8 +201,6 @@ class Redis2DStore extends RedisStore {
         this.stores.clear();
 
         console.log('NAME: ' + this.name);
-        if (keys.length == 0) return;
-
         const promises = [];
 
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
