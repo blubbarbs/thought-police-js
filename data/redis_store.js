@@ -200,7 +200,6 @@ class Redis2DStore extends RedisStore {
     async fetch() {
         this.stores.clear();
 
-        console.log('NAME: ' + this.name);
         const promises = [];
 
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
