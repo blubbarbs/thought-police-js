@@ -202,6 +202,8 @@ class Redis2DStore extends RedisStore {
 
         const promises = [];
 
+        console.log(`Beginning fetch for ${this.name}...`)
+
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
             const store = new Redis1DStore(this.redis, redisKey);
             const namespace = redisKey.split(':');
