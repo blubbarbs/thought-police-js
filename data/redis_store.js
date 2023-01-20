@@ -216,7 +216,7 @@ class Redis2DStore extends RedisStore {
     async sync() {
         const promises = [];
 
-        for (const store of this.stores.value()) {
+        for (const store of this.stores.values()) {
             promises.push(store.sync());
         }
 
