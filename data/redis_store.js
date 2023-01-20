@@ -8,7 +8,7 @@ class Redis1DStore extends RedisStore {
 
         this.docName = docName;
         this.redis = redis;
-        this.namespace = ['$', ...namespace];
+        this.namespace = ['', ...namespace];
         this.cache = new Collection();
         this.dirtyKeys = new Set();
     }
