@@ -64,7 +64,7 @@ class Redis1DStore extends RedisStore {
     async fetch() {
         console.log('FULL PATH: ' + this.getFullPath());
 
-        const data = await this.redis.json.get(this.docName, this.getFullPath());
+        const data = await this.redis.json.get(this.docName, { path: [this.getFullPath()] });
 
         this.cache.clear();
         this.dirtyKeys.clear();
