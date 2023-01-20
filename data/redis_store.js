@@ -49,7 +49,7 @@ class Redis1DStore extends RedisStore {
     }
 
     clear() {
-        for (key of this.cache.keys()) {
+        for (const key of this.cache.keys()) {
             this.dirtyKeys.add(key);
         }
 
