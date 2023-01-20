@@ -201,8 +201,10 @@ class Redis2DStore extends RedisStore {
     async fetch() {
         this.stores.clear();
 
-        const keys = await this.redis.json.objKeys(this.name, '$');
+        print('NAME: ' + this.name);
+        const keys = await this.redis.json.objKeys(this.name, { path: '$' });
 
+        print('KEYS: ' + keys);
         if (keys.length == 0) return;
 
         const promises = [];
