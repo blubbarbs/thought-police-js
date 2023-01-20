@@ -22,8 +22,11 @@ class Game {
     async loadGame() {
         const promises = [];
 
+        console.log('Loading...');
+
         for (const [key, value] of Object.entries(this)) {
             if (value instanceof RedisStore) {
+                console.log(`Fetching ${key}`);
                 promises.push(value.fetch());
             }
         }
