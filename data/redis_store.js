@@ -13,7 +13,7 @@ class Redis1DStore extends RedisStore {
         this.dirtyKeys = new Set();
     }
 
-    getFullPath(args) {
+    getFullPath(...args) {
         return this.namespace.join('.') + args.join('.');
     }
 
