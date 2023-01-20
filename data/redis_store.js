@@ -63,7 +63,7 @@ class Redis1DStore extends RedisStore {
         this.dirtyKeys.clear();
 
         for (const [key, value] of Object.entries(data)) {
-            this.cache.set(key, value);
+            this.cache.set(key, JSON.parse(value));
         }
     }
 
@@ -75,8 +75,10 @@ class Redis1DStore extends RedisStore {
         for (const key of this.dirtyKeys.keys()) {
             let promise;
 
+            console.log(`Found Dirty: ${this.docName} ${key}`);
+
             if (this.cache.has(key)) {
-                promise = this.redis.hSet(this.docName, key, this.cache.get(key));
+                promise = this.redis.hSet(this.docName, key, JSON.stringify(this.cache.get(key)));
             }
             else {
                 promise = this.redis.hDel(this.docName, key);
@@ -139,7 +141,7 @@ class Redis2DStore extends RedisStore {
             data[key] = this.get(id, key);
         }
 
-        return Object.length(data) > 0 ? data : null;
+        return Object.keys(data).length > 0 ? data : null;
     }
 
     set(id, key, value) {
@@ -204,12 +206,12 @@ class Redis2DStore extends RedisStore {
 
         console.log(`Beginning fetch for ${this.name}...`)
 
-        for await (const redisKey of this.redis.scanIterator({ TYPE: 'string', MATCH: `${this.name}:*`})) {
+        for await (const redisKey of this.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.name}:*`})) {
             const store = new Redis1DStore(this.redis, redisKey);
             const namespace = redisKey.split(':');
             const key = namespace[namespace.length - 1];
 
-            console.log(`FOUND ${namespace} NAMESPACE. KEY: ${key}`);
+            console.log(`FOUND ${redisKey} NAMESPACE. KEY: ${key}`);
 
             this.stores.set(key, store);
             promises.push(store.fetch());

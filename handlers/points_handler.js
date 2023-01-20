@@ -1,3 +1,4 @@
+const { User } = require('discord.js');
 const { UserData, getGuild } = require('../bot.js');
 
 const LEADERBOARD_CHANNEL_ID = '987990655601102899';
@@ -33,6 +34,8 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
+
+        await UserData.sync();
     }
 
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
@@ -41,6 +44,8 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
+
+        await UserData.sync();
     }
 
     static async getLeaderboard(end, start) {

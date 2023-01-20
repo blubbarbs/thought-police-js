@@ -22,7 +22,7 @@ async function isFreeSpace(_, arg) {
 }
 
 async function canDig(interaction) {
-    if (!TreasureHunt.hasUsedDailyDig(interaction.member.id)) return;
+    if (TreasureHunt.hasDailyDig(interaction.member.id)) return;
 
     const minutesTillDailyDig = TreasureHunt.getMinutesTillNextDig(interaction.member.id);
     const hours = Math.floor(minutesTillDailyDig / 60);
@@ -35,7 +35,7 @@ async function execute(interaction, args) {
     const [x, y] = args['coordinates'];
     const treasure = TreasureHunt.dig(interaction.member.id, x, y);
 
-    if (treasure == null) {
+    if (Object.keys(treasure).length == 0) {
         await TreasureHunt.saveGame();
         await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. They found nothing.`, embeds: [TreasureHunt.getBoardEmbed()] });
         return;

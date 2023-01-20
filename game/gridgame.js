@@ -80,7 +80,7 @@ class GridGame extends Game {
         return this.randomTiles(1, predicate)[0];
     }
 
-    getGridString() {
+    toString() {
         let str = '↘️';
 
         for (let x = 0; x < this.length; x++) {
