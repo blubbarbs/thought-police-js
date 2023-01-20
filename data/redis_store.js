@@ -4,6 +4,8 @@ class RedisStore {}
 
 class Redis1DStore extends RedisStore {
     constructor(redis, docName, ...namespace) {
+        super();
+
         this.docName = docName;
         this.redis = redis;
         this.namespace = ['$', ...namespace];
@@ -96,6 +98,8 @@ class Redis1DStore extends RedisStore {
 
 class Redis2DStore extends RedisStore {
     constructor(redis, docName) {
+        super();
+
         this.docName = docName;
         this.redis = redis;
         this.stores = new Collection();
