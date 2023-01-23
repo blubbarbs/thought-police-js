@@ -1,17 +1,17 @@
-const { RedisStore, Redis1DStore, Redis2DStore } = require('../data/redis_store.js');
+const { RedisCache, Redis1DCache, Redis2DCache } = require('../data/redis_cache.js');
 
 class Game {
     constructor(name, redis) {
         this.name = name;
-        this.settings = new Redis1DStore(redis, name, 'settings');
-        this.playerData = new Redis2DStore(redis, name, 'player_data');
+        this.settings = new Redis1DCache(redis, name, 'settings');
+        this.playerData = new Redis2DCache(redis, name, 'player_data');
     }
 
     async saveGame() {
         const promises = [];
 
         for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisStore) {
+            if (value instanceof RedisCache) {
                 promises.push(value.sync());
             }
         }
@@ -25,7 +25,7 @@ class Game {
         console.log('Loading...');
 
         for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisStore) {
+            if (value instanceof RedisCache) {
                 console.log(`Fetching ${key}`);
                 promises.push(value.fetch());
             }

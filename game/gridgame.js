@@ -2,7 +2,8 @@ const { randomInt } = require("../util/random");
 const { getNumberEmoji, getLetterEmoji } = require('../util/emoji');
 const { toCoordinates, toAlphanumeric } = require('../util/grid_coords');
 const { Game } = require("./game");
-const { Redis1DStore, Redis2DStore } = require("../data/redis_store");
+const { Redis1DCache, Redis2DCache } = require("../data/redis_cache");
+
 
 class Point {
     static toString(x, y) {
@@ -26,8 +27,8 @@ class GridGame extends Game {
     constructor(name, redis) {
         super(name, redis);
 
-        this.tileDisplayData = new Redis1DStore(redis, name, 'tile_display');
-        this.tileData = new Redis2DStore(redis, name, 'tile_data');
+        this.tileDisplayData = new Redis1DCache(redis, name, 'tile_display');
+        this.tileData = new Redis2DCache(redis, name, 'tile_data');
 
         this.settings.set('length', 10);
         this.settings.set('width', 10);

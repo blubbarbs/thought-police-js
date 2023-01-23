@@ -1,6 +1,6 @@
 const { Client, Intents } = require('discord.js');
 const { createClient } = require('redis');
-const { Redis1DStore, Redis2DStore } = require('./data/redis_store.js');
+const { Redis1DCache, Redis2DCache } = require('./data/redis_cache.js');
 const { TreasureHuntGame } = require('./games/treasure_hunt.js');
 
 const GUILD_ID = '209496826204782592';
@@ -14,9 +14,9 @@ const clientIntents = [
 const client = new Client({ intents: clientIntents });
 
 // Server Stores
-const ServerSettings = new Redis1DStore(redis, 'server_settings');
-const UserData = new Redis2DStore(redis, 'user_data');
-const RoleData = new Redis2DStore(redis, 'role_data');
+const ServerSettings = new Redis1DCache(redis, 'server_settings');
+const UserData = new Redis2DCache(redis, 'user_data');
+const RoleData = new Redis2DCache(redis, 'role_data');
 
 // Games
 const TreasureHunt = new TreasureHuntGame(redis);

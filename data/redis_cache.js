@@ -1,8 +1,8 @@
 const { Collection } = require("discord.js");
 
-class RedisStore {}
+class RedisCache {}
 
-class Redis1DStore extends RedisStore {
+class Redis1DCache extends RedisCache {
     constructor(redis, ...namespace) {
         super();
 
@@ -93,7 +93,7 @@ class Redis1DStore extends RedisStore {
     }
 }
 
-class Redis2DStore extends RedisStore {
+class Redis2DCache extends RedisCache {
     constructor(redis, ...namespace) {
         super();
 
@@ -103,7 +103,7 @@ class Redis2DStore extends RedisStore {
     }
 
     _getNewSubstore(key) {
-        return new Redis1DStore(this.redis, `${this.name}:${key}`)
+        return new Redis1DCache(this.redis, `${this.name}:${key}`)
     }
 
     keys() {
@@ -207,7 +207,7 @@ class Redis2DStore extends RedisStore {
         console.log(`Beginning fetch for ${this.name}...`)
 
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'hash', MATCH: `${this.name}:*`})) {
-            const store = new Redis1DStore(this.redis, redisKey);
+            const store = new Redis1DCache(this.redis, redisKey);
             const namespace = redisKey.split(':');
             const key = namespace[namespace.length - 1];
 
@@ -232,7 +232,7 @@ class Redis2DStore extends RedisStore {
 }
 
 module.exports = {
-    RedisStore: RedisStore,
-    Redis1DStore: Redis1DStore,
-    Redis2DStore: Redis2DStore
+    RedisCache: RedisCache,
+    Redis1DCache: Redis1DCache,
+    Redis2DCache: Redis2DCache
 }
