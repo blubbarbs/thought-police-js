@@ -4,7 +4,7 @@ const { TreasureHunt } = require('../../../bot');
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
 
-    TreasureHunt.playerData.delete(target.id, 'last_dig_time');
+    TreasureHunt.playerData.delete('last_dig_time', target.id);
     await TreasureHunt.saveGame();
 
     if (target == interaction.member) {

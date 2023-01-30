@@ -1,38 +1,15 @@
-const { RedisCache, Redis1DCache, Redis2DCache } = require('../data/redis_cache.js');
+const { DataHandler } = require('../handlers/data_handler.js');
 
 class Game {
-    constructor(name, redis) {
+    constructor(name) {
         this.name = name;
-        this.settings = new Redis1DCache(redis, name, 'settings');
-        this.playerData = new Redis2DCache(redis, name, 'player_data');
+        this.settings = DataHandler.cache(name, 'settings');
+        this.playerData = DataHandler.cache(name, 'player_data');
     }
 
-    async saveGame() {
-        const promises = [];
+    async saveGame() {}
 
-        for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisCache) {
-                promises.push(value.sync());
-            }
-        }
-
-        await Promise.all(promises);
-    }
-
-    async loadGame() {
-        const promises = [];
-
-        console.log('Loading...');
-
-        for (const [key, value] of Object.entries(this)) {
-            if (value instanceof RedisCache) {
-                console.log(`Fetching ${key}`);
-                promises.push(value.fetch());
-            }
-        }
-
-        await Promise.all(promises);
-    }
+    async loadGame() {}
 
     async newGame() {}
 

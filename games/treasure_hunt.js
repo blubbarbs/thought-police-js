@@ -1,4 +1,4 @@
-const { Redis2DCache } = require('../data/redis_cache.js');
+const { DataHandler } = require('../handlers/data_handler');
 const { GridGame } = require('../game/gridgame.js');
 const { randomGaussian, randomInt, roll } = require('../util/random.js');
 
@@ -20,7 +20,28 @@ class TreasureHuntGame extends GridGame {
     constructor(redis) {
         super(GAME_NAME, redis);
 
-        this.tileTreasureData = new Redis2DCache(redis, GAME_NAME, 'tile_treasure');
+        this.tileTreasureData = DataHandler.cache(GAME_NAME, 'tile_treasure');
+    }
+
+    isTileDug(tileID) {
+        return this.tileData.get('is_dug', tileID) == true;
+    }
+
+    getTileTreasure(tileID) {
+        const treasure = {};
+
+        for (const treasureCache of this.tileTreasureData.subcaches()) {
+            const value = treasureCache.get(tileID);
+
+            if (value) {
+                treasure[treasureCache.name] = value;
+            }
+        }
+
+        console.log('TREASURE FOR ' + tileID);
+        console.log(treasure);
+
+        return Object.keys(treasure).length > 0 ? treasure : null;
     }
 
     hasDailyDig(id) {
@@ -28,11 +49,11 @@ class TreasureHuntGame extends GridGame {
     }
 
     getFreeDigs(id) {
-        return this.playerData.get(id, 'free_digs');
+        return this.playerData.get('free_digs', id);
     }
 
     getMinutesTillNextDig(id) {
-        const lastDigTime = this.playerData.get(id, 'last_dig_time');
+        const lastDigTime = this.playerData.get('last_dig_time', id);
 
         if (lastDigTime == null) return 0;
 
@@ -44,7 +65,7 @@ class TreasureHuntGame extends GridGame {
     }
 
     getTreasureTilesLeft() {
-        const treasureTiles = this.findTiles((x, y, tileID) => this.tileTreasureData.hasID(tileID));
+        const treasureTiles = this.findTiles((tileID) => this.getTileTreasure(tileID) != null);
 
         return treasureTiles.length;
     }
@@ -53,10 +74,9 @@ class TreasureHuntGame extends GridGame {
         let left = 0;
 
         for (const tileID of this.tiles()) {
-            const treasureAmount = this.tileTreasureData.get(tileID, treasureName);
+            const treasureAmount = this.tileTreasureData.get(treasureName, tileID) || 0;
 
-            if (treasureAmount != null && treasureAmount > 0) {
-                console.log(`TREASURE AMOUNT FOR ${tileID}: ${treasureAmount}`);
+            if (!this.isTileDug(tileID) && treasureAmount > 0) {
                 left += treasureAmount;
             }
         }
@@ -66,7 +86,7 @@ class TreasureHuntGame extends GridGame {
 
     calculateChestPercentage() {
         const numChests = this.getTreasureTilesLeft();
-        const numFreeSpaces = this.findTiles((x, y, tileID) => this.tileData.get(tileID, 'is_dug') != true).length;
+        const numFreeSpaces = this.findTiles((tileID) => !this.isTileDug(tileID)).length;
 
         return (numChests / numFreeSpaces) * 100;
     }
@@ -103,32 +123,23 @@ class TreasureHuntGame extends GridGame {
             const tileID = this.randomTile();
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(tileID) : treasureAmountGenerator;
 
-            this.tileTreasureData.add(tileID, treasureName, treasureAmount);
+            this.tileTreasureData.add(treasureName, tileID, treasureAmount);
         }
     }
 
-    dig(id, x, y) {
-        const tileID = [x, y].toString();
-        const treasure = this.tileTreasureData.gets(tileID);
-
-        if (this.tileTreasureData.hasID(tileID)) {
-            this.tileDisplayData.set(tileID, '⭕');
-            this.tileTreasureData.delete(tileID);
-        }
-        else {
-            this.tileDisplayData.set(tileID, '✖️');
-        }
-
-        this.playerData.set(id, 'last_dig_time', Date.now());
-        this.tileData.set(tileID, 'is_dug', true);
+    dig(id, tileID) {
+        const treasure = this.getTileTreasure(tileID);
+        this.tileDisplayData.set(tileID, treasure != null ? '⭕' : '✖️');
+        this.tileData.set('is_dug', tileID, true);
+        this.playerData.set('last_dig_time', id, Date.now());
 
         return treasure;
     }
 
     async newGame() {
-        this.playerData.stores.get('last_dig_time')?.clear();
-        this.tileData.clear();
-        this.tileDisplayData.clear();
+        this.playerData.subcache('last_dig_time')?.clear();
+        this.tileData.clear(true);
+        this.tileDisplayData.clear(true);
 
         this.settings.set('length', GRID_LENGTH);
         this.settings.set('width', GRID_WIDTH);

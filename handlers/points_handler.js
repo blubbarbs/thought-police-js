@@ -1,4 +1,3 @@
-const { User } = require('discord.js');
 const { UserData, getGuild } = require('../bot.js');
 
 const LEADERBOARD_CHANNEL_ID = '987990655601102899';
@@ -25,31 +24,36 @@ class PointsHandler {
     }
 
     static async getPoints(id) {
-        return UserData.get(id, 'points');
+        return UserData.get('points', id);
     }
 
     static async setPoints(id, points, shouldUpdateLeaderboard = true) {
-        UserData.set(id, 'points', points);
+        UserData.set('points', id, points);
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
 
-        await UserData.sync();
+        await UserData.subcache('points').sync();
     }
 
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
-        UserData.add(id, 'points', deltaPoints);
+        UserData.add('points', id, deltaPoints);
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
 
-        await UserData.sync();
+        await UserData.subcache('points').sync();
     }
 
     static async getLeaderboard(end, start) {
-        const scores = UserData.stores.get('points').cache;
+        const scores = UserData.subcache('points')?.cache;
+
+        if (!scores) {
+            return [];
+        }
+
         const leaderboardKeysSorted = Array.from(scores.keys()).sort((a, b) => scores[b] - scores[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;

@@ -5,15 +5,18 @@ const path = require('node:path');
 const { client, redis, TreasureHunt} = require('./bot');
 const { MudaeHandler } = require('./handlers/mudae_handler');
 const { CommandHandler } = require('./handlers/command_handler');
+const { DataHandler } = require('./handlers/data_handler');
 
 async function onReady() {
     await MudaeHandler.updateCurfew();
+    await DataHandler.fetchAll();
 
     console.log('Loaded client.')
 }
 
 async function onDisconnect() {
-    await redis.disconnect();
+    await DataHandler.syncAll();
+    await DataHandler.redis.disconnect();
     await MudaeHandler.haltCurfew();
 }
 
@@ -58,7 +61,7 @@ async function onMemberLeave(member) {
 }
 
 async function start() {
-    await redis.connect();
+    await DataHandler.redis.connect();
     await CommandHandler.reloadCommands(path.join(__dirname, 'commands'));
     await TreasureHunt.loadGame();
 

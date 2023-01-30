@@ -1,34 +1,15 @@
 const { randomInt } = require("../util/random");
 const { getNumberEmoji, getLetterEmoji } = require('../util/emoji');
-const { toCoordinates, toAlphanumeric } = require('../util/grid_coords');
+const { toAlphanumeric } = require('../util/grid_coords');
 const { Game } = require("./game");
-const { Redis1DCache, Redis2DCache } = require("../data/redis_cache");
-
-
-class Point {
-    static toString(x, y) {
-        return `${x},${y}`;
-    }
-
-    static fromString(string) {
-        return Point.fromCoordinates(...string.split(','));
-    }
-
-    static fromCoordinates(x, y) {
-        return [+x, +y];
-    }
-
-    static fromAlphanumeric(alphanumeric) {
-        return toCoordinates(alphanumeric);
-    }
-}
+const { DataHandler } = require("../handlers/data_handler");
 
 class GridGame extends Game {
     constructor(name, redis) {
         super(name, redis);
 
-        this.tileDisplayData = new Redis1DCache(redis, name, 'tile_display');
-        this.tileData = new Redis2DCache(redis, name, 'tile_data');
+        this.tileDisplayData = DataHandler.cache(name, 'tile_display');
+        this.tileData = DataHandler.cache(name, 'tile_data');
 
         this.settings.set('length', 10);
         this.settings.set('width', 10);
@@ -52,9 +33,9 @@ class GridGame extends Game {
 
         for (let y = 0; y < this.width; y++) {
             for (let x = 0; x < this.length; x++) {
-                const tileID = [x, y].toString();
+                const tileID = toAlphanumeric(x, y);
 
-                if (predicate == null || predicate(x, y, tileID)) {
+                if (predicate == null || predicate(tileID)) {
                     filteredTiles.push(tileID);
                 }
             }
@@ -94,8 +75,7 @@ class GridGame extends Game {
             str += getLetterEmoji(y);
 
             for (let x = 0; x < this.length; x++) {
-                const tileID = [x, y].toString();
-                const display = this.tileDisplayData.get(tileID) || this.defaultTileDisplay;
+                const display = this.tileDisplayData.get(toAlphanumeric(x, y)) || this.defaultTileDisplay;
 
                 str += display;
             }
@@ -109,13 +89,12 @@ class GridGame extends Game {
     *tiles() {
         for (let y = 0; y < this.width; y++) {
             for (let x = 0; x < this.length; x++) {
-                yield [x, y].toString();
+                yield toAlphanumeric(x, y);
             }
         }
     }
 }
 
 module.exports = {
-    GridGame: GridGame,
-    Point: Point
+    GridGame: GridGame
 }

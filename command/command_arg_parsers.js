@@ -1,4 +1,4 @@
-const { toCoordinates } = require("../util/grid_coords.js");
+const { toCoordinates, toAlphanumeric } = require("../util/grid_coords.js");
 
 const USER_REGEX = /<@!?([0-9]+)>/;
 const CHANNEL_REGEX = /<#([0-9]+)>/;
@@ -6,7 +6,7 @@ const ROLE_REGEX = /<@&([0-9]+)>/;
 
 async function parseMember(arg, channel) {
     const match = arg.match(USER_REGEX);
-    
+
     if (match != null) {
         const id = match[1];
         const guild = channel.guild;
@@ -32,7 +32,7 @@ async function parseUser(arg, channel) {
 
 async function parseChannel(arg, channel) {
     const match = arg.match(CHANNEL_REGEX);
-    
+
     if (match != null) {
         const id = match[1];
         const guild = channel.guild;
@@ -52,7 +52,7 @@ async function parseChannel(arg, channel) {
 
 async function parseRole(arg, channel) {
     const match = arg.match(ROLE_REGEX);
-    
+
     if (match != null) {
         const id = match[1];
         const guild = channel.guild;
@@ -134,7 +134,7 @@ async function parseGridCoordinates(arg) {
         throw 'You must input a letter for the coordinates to be valid.'
     }
     else {
-        return coords;
+        return toAlphanumeric(...coords);
     }
 }
 

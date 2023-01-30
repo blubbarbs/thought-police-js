@@ -1,22 +1,19 @@
-const { toAlphanumeric } = require('../../util/grid_coords');
+const { toCoordinates } = require('../../util/grid_coords');
 const { PointsHandler } = require('../../handlers/points_handler');
 const { TreasureHunt } = require('../../bot');
 
-async function isValidSpace(_, arg) {
-    const [x, y] = arg;
+async function isValidSpace(_, tileID) {
+    const [x, y] = toCoordinates(tileID);
 
     if (x >= TreasureHunt.length || y >= TreasureHunt.width) {
         throw 'That space is outside the game area.';
     }
 }
 
-async function isFreeSpace(_, arg) {
-    await isValidSpace(_, arg);
+async function isFreeSpace(_, tileID) {
+    await isValidSpace(_, tileID);
 
-    const tileID = arg.toString();
-    const isDug = TreasureHunt.tileData.get(tileID, 'is_dug');
-
-    if (isDug) {
+    if (TreasureHunt.isTileDug(tileID)) {
         throw 'That space has already been dug up.';
     }
 }
@@ -32,19 +29,19 @@ async function canDig(interaction) {
 }
 
 async function execute(interaction, args) {
-    const [x, y] = args['coordinates'];
-    const treasure = TreasureHunt.dig(interaction.member.id, x, y);
+    const tileID = args['coordinates'];
+    const treasure = TreasureHunt.dig(interaction.member.id, tileID);
 
-    if (Object.keys(treasure).length == 0) {
+    if (!treasure) {
         await TreasureHunt.saveGame();
-        await interaction.reply({ content: `${interaction.member} dug at ${toAlphanumeric(x, y)}. They found nothing.`, embeds: [TreasureHunt.getBoardEmbed()] });
+        await interaction.reply({ content: `${interaction.member} dug at ${tileID}. They found nothing.`, embeds: [TreasureHunt.getBoardEmbed()] });
         return;
     }
 
     const points = treasure['points'];
     const freeDigs = treasure['free_digs'];
     const totalPointsLeft = TreasureHunt.getTreasuresLeft('points');
-    let rewardMessage = `${interaction.member} dug at ${toAlphanumeric(x, y)}. *They struck treasure!* Inside was: \n\n`;
+    let rewardMessage = `${interaction.member} dug at ${tileID}. *They struck treasure!* Inside was: \n\n`;
 
     if (points != null) {
         await PointsHandler.addPoints(interaction.member.id, points);
