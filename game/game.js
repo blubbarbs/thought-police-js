@@ -7,15 +7,11 @@ class Game {
         this.playerData = DataHandler.cache(name, 'player_data');
     }
 
-    async saveGame() {}
+    newGame() {}
 
-    async loadGame() {}
+    startGame() {}
 
-    async newGame() {}
-
-    async startGame() {}
-
-    async endGame() {}
+    endGame() {}
 }
 
 module.exports = {

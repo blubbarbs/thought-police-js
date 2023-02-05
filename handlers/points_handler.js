@@ -33,8 +33,6 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
-
-        await UserData.subcache('points').sync();
     }
 
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
@@ -43,8 +41,6 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
-
-        await UserData.subcache('points').sync();
     }
 
     static async getLeaderboard(end, start) {

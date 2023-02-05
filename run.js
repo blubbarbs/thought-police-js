@@ -2,22 +2,35 @@ require('dotenv').config();
 process.env.TZ = 'America/Los_Angeles';
 
 const path = require('node:path');
-const { client, redis, TreasureHunt} = require('./bot');
+const { client } = require('./bot');
 const { MudaeHandler } = require('./handlers/mudae_handler');
 const { CommandHandler } = require('./handlers/command_handler');
 const { DataHandler } = require('./handlers/data_handler');
+const { ScheduleHandler } = require('./handlers/schedule_handler');
+
+async function start() {
+    await DataHandler.redis.connect();
+    await CommandHandler.reloadCommands(path.join(__dirname, 'commands'));
+
+    client.on('ready', onReady);
+    client.on('shardDisconnect', onDisconnect);
+    client.on('interactionCreate', onInteract);
+
+    client.login(process.env.TOKEN);
+}
 
 async function onReady() {
     await MudaeHandler.updateCurfew();
     await DataHandler.fetchAll();
+    await ScheduleHandler.loadSchedulers();
 
-    console.log('Loaded client.')
+    console.log('Loaded client.');
 }
 
 async function onDisconnect() {
-    await DataHandler.syncAll();
     await DataHandler.redis.disconnect();
     await MudaeHandler.haltCurfew();
+    await ScheduleHandler.unscheduleAll();
 }
 
 async function onInteract(interaction) {
@@ -60,23 +73,6 @@ async function onMemberLeave(member) {
 
 }
 
-async function start() {
-    await DataHandler.redis.connect();
-    await CommandHandler.reloadCommands(path.join(__dirname, 'commands'));
-    await TreasureHunt.loadGame();
-
-    client.on('ready', onReady);
-    client.on('shardDisconnect', onDisconnect);
-    client.on('interactionCreate', onInteract);
-
-    client.login(process.env.TOKEN);
-}
-
 start()
 .then(() => console.log('Logged into client...'))
 .catch((error) => console.error(error));
-
-module.exports = {
-    client: client,
-    redis: redis
-}

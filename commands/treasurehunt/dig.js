@@ -33,7 +33,6 @@ async function execute(interaction, args) {
     const treasure = TreasureHunt.dig(interaction.member.id, tileID);
 
     if (!treasure) {
-        await TreasureHunt.saveGame();
         await interaction.reply({ content: `${interaction.member} dug at ${tileID}. They found nothing.`, embeds: [TreasureHunt.getBoardEmbed()] });
         return;
     }
@@ -56,12 +55,9 @@ async function execute(interaction, args) {
     await interaction.reply({ content: rewardMessage, embeds: [TreasureHunt.getBoardEmbed()]});
 
     if (totalPointsLeft == 0) {
-        await TreasureHunt.newGame();
+        TreasureHunt.newGame();
 
         await interaction.followUp({ content: 'That was all of the treasure on the board. A new game has begun.', embeds: [TreasureHunt.getBoardEmbed()] });
-    }
-    else {
-        await TreasureHunt.saveGame();
     }
 }
 

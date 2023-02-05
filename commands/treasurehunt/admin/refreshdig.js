@@ -5,7 +5,6 @@ async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
 
     TreasureHunt.playerData.delete('last_dig_time', target.id);
-    await TreasureHunt.saveGame();
 
     if (target == interaction.member) {
         await interaction.reply({ content: `Successfully refreshed your dig cycle.`, ephemeral: true });

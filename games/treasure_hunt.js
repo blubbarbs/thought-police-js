@@ -38,9 +38,6 @@ class TreasureHuntGame extends GridGame {
             }
         }
 
-        console.log('TREASURE FOR ' + tileID);
-        console.log(treasure);
-
         return Object.keys(treasure).length > 0 ? treasure : null;
     }
 
@@ -136,9 +133,10 @@ class TreasureHuntGame extends GridGame {
         return treasure;
     }
 
-    async newGame() {
+    newGame() {
         this.playerData.subcache('last_dig_time')?.clear();
         this.tileData.clear(true);
+        this.tileTreasureData.clear(true);
         this.tileDisplayData.clear(true);
 
         this.settings.set('length', GRID_LENGTH);
@@ -160,11 +158,9 @@ class TreasureHuntGame extends GridGame {
 
             this.distributeTreasure(numPointRolls, 'points', () => Math.round(randomGaussian(averagePoints, averagePoints * .2)));
             this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
-            this.settings.set('jackpot', true);
+            this.settings.set('jackpot', false);
             this.settings.set('default_tile_display', '🔲');
         }
-
-        await this.saveGame();
     }
 }
 

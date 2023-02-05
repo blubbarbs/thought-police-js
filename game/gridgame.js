@@ -10,10 +10,6 @@ class GridGame extends Game {
 
         this.tileDisplayData = DataHandler.cache(name, 'tile_display');
         this.tileData = DataHandler.cache(name, 'tile_data');
-
-        this.settings.set('length', 10);
-        this.settings.set('width', 10);
-        this.settings.set('default_tile_display', '🔲');
     }
 
     get length() {
