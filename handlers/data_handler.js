@@ -143,10 +143,10 @@ class RedisCache {
 
             this.cache.clear();
 
-            console.log('FETCHING FOR ' + this.redisPath);
+            console.info('Fetching ' + this.redisPath);
 
             for (const [key, value] of Object.entries(data)) {
-                console.log(`KEY: ${key}, VALUE: ${value}`);
+                console.info(`${key}: ${value}`);
                 this.cache.set(key, JSON.parse(value));
             }
         }

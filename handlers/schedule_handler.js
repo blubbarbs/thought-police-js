@@ -36,7 +36,6 @@ class ScheduleHandler {
         }
 
         return scheduler;
-
     }
 }
 
@@ -54,9 +53,8 @@ class Scheduler {
 
         for (let [taskID, taskData] of Object.entries(data)) {
             taskData = JSON.parse(taskData);
-            const timeMillis = Math.max(Date.now() - taskData._timeout, 0);
+            const timeMillis = Math.max(taskData._timeout - Date.now(), 0);
 
-            console.log('Found ' + taskID + ' with remaining timeout of ' + timeMillis);
             this.scheduleIDs.set(taskID, setTimeout(this._timeoutCallback(taskID, taskData), timeMillis));
             this.taskData.set(taskData, taskData);
         }
@@ -73,6 +71,10 @@ class Scheduler {
         taskID = taskID || crypto.randomUUID();
         data = { _id: taskID, _timeout: Date.now() + timeMillis, ...data };
 
+        if (this.scheduleIDs.has(taskID)) {
+            this.unschedule(taskID);
+        }
+
         this.scheduleIDs.set(taskID, setTimeout(this._timeoutCallback(taskID, data), timeMillis));
         this.taskData.set(taskID, data);
         DataHandler.redis.hSet(this.redisPath, taskID, JSON.stringify(data))
@@ -82,8 +84,6 @@ class Scheduler {
     }
 
     unschedule(taskID) {
-        console.log('Unscheduling...');
-
         clearTimeout(this.scheduleIDs.get(taskID));
         this.scheduleIDs.delete(taskID);
         this.taskData.delete(taskID);
