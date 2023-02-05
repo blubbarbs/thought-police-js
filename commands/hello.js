@@ -21,7 +21,7 @@ async function execute(interaction, args) {
 }
 
 module.exports = {
-    description: 'Executes a redis command.',
+    description: 'Sends a command back to the user after a fixed number of seconds.',
     args: {
         text: {
             type: 'string',
@@ -29,7 +29,7 @@ module.exports = {
             required: true
         },
         time: {
-            type: 'int',
+            type: 'integer',
             description: 'Time (in seconds) to display message.',
             required: true
         }
