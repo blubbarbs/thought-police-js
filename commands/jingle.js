@@ -12,7 +12,7 @@ async function isAudioURL(_, arg) {
     catch (e) {
         throw 'That is not a valid URL.';
     }
-    
+
     if (!contentType.startsWith('audio') && contentType != 'application/ogg') {
         throw 'That URL does not point to a valid audio stream.';
     }
@@ -33,9 +33,9 @@ module.exports = {
             type: 'string',
             description: 'URL directing to the audio file to be played.',
             required: true,
-            checks: isAudioURL
+            checks: [isAudioURL]
         }
     },
-    checks: assert((interaction) => interaction.member.voice.channel != null, 'You are not connected to a voice channel.'),
+    checks: [assert((interaction) => interaction.member.voice.channel != null, 'You are not connected to a voice channel.')],
     execute: execute
 }

@@ -10,6 +10,6 @@ async function execute(interaction) {
 
 module.exports = {
     description: 'Refresh the dig cycle.',
-    checks: assert((interaction) => TreasureHunt.getFreeDigs(interaction.member.id) > 0, 'You have no free digs available.'),
+    checks: [assert((interaction) => TreasureHunt.getFreeDigs(interaction.member.id) > 0, 'You have no free digs available.')],
     execute: execute
 }

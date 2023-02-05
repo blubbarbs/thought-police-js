@@ -29,7 +29,7 @@ module.exports = {
                 custom_tag: 'Custom Tag - 1000 points'
             },
             required: true,
-            checks: hasEnoughPoints
+            checks: [hasEnoughPoints]
         }
     },
     execute: execute

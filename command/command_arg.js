@@ -7,7 +7,7 @@ class CommandArgument {
         this.type = argObject.type || 'string';
         this.description = argObject.description || 'N/A';
         this.permissions = argObject.permissions || [];
-        this.checks = argObject.checks == null ? [] : [argObject.checks].flat();
+        this.checks = argObject.checks || [];
         this.required = argObject.required == true;
         this.choices = [];
 

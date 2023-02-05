@@ -40,7 +40,7 @@ class Command {
         this.identifier = parent != null ? `${parent.identifier}.${this.name}` : this.name;
         this.description = commandObj.description || 'N/A';
         this.permissions = commandObj.permissions || [];
-        this.checks = commandObj.checks == null ? [] : [commandObj.checks].flat();
+        this.checks = commandObj.checks || [];
         this.permitDM = commandObj.permitDM == true;
         this.args = new Collection();
         this.subcommands = new Collection();
@@ -52,7 +52,7 @@ class Command {
             }
         }
     }
-    
+
     toDiscordAPI() {
         const obj = {
             name: this.name,
@@ -82,19 +82,19 @@ class Command {
         }
 
         let command = this;
-        
+
         while (command != null) {
             if (!interaction.member.permissions.has(command.permissions)) {
                 throw 'You do not have permission to use this command.';
             }
-            
+
             for (const check of command.checks) {
                 await check(interaction, processedArgs);
             }
 
             command = command.parent;
         }
-        
+
         await this.run(interaction, processedArgs);
     }
 }

@@ -68,9 +68,9 @@ module.exports = {
             type : 'grid_coordinates',
             description: 'Coordinates of where to dig.',
             required: true,
-            checks: isFreeSpace
+            checks: [isFreeSpace]
         }
     },
-    checks: canDig,
+    checks: [canDig],
     execute: execute
 }

@@ -26,19 +26,19 @@ async function decolorMember(member) {
 async function makeColorRole(hexColor) {
     const guild = await getGuild();
 	const roles = Array.from(guild.roles.cache.values());
-    
+
     for (const role of guild.roles.cache.values()) {
 		if(role.name == hexColor) {
 			return role;
 		}
 	}
-	
+
     const newRoleData = {
 		name: hexColor,
 		color: hexColor,
         position: roles.length - ROLE_OFFSET
     };
-    
+
     const role = await guild.roles.create(newRoleData);
 
     return role;
@@ -47,7 +47,7 @@ async function makeColorRole(hexColor) {
 async function execute(interaction, args) {
     const color = args['color'];
     const target = args['target'] || interaction.member;
-    
+
     await colorMember(target, color);
     await interaction.reply({ content: `Colored.`, ephemeral: true });
 }
@@ -59,7 +59,7 @@ module.exports = {
             type: 'string',
             description: "Hex color you want to change to.",
             required: true,
-            checks: assert((_, arg) => arg.match(hexRegex) != null, 'That is not a valid color hex.')
+            checks: [assert((_, arg) => arg.match(hexRegex) != null, 'That is not a valid color hex.')]
         },
         target: {
             type: 'member',

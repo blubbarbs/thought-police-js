@@ -22,7 +22,6 @@ async function execute(interaction, args) {
         UserData.add(member.id, 'points', Math.round(pointPrize * .3));
     }
 
-    await UserData.sync();
     await PointsHandler.updateLeaderboard();
     await interaction.editReply('Gave points to all listed members.');
 }
