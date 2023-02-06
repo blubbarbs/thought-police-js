@@ -1,4 +1,4 @@
-const { TreasureHunt } = require("../../bot");
+const { TreasureHunt } = require("@bot");
 
 async function execute(interaction) {
     await interaction.reply({ embeds: [TreasureHunt.getBoardEmbed()] });

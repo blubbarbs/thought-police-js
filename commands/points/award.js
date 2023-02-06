@@ -1,6 +1,6 @@
 const { Permissions } = require('discord.js');
-const { UserData } = require('../../bot');
-const { PointsHandler } = require('../../handlers/points_handler');
+const { UserData } = require('@bot');
+const { PointsHandler } = require('@handlers');
 
 async function execute(interaction, args) {
     const pointPrize = args['points'];

@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { TreasureHunt } = require('../../../bot');
+const { TreasureHunt } = require('@games');
 
 async function execute(interaction) {
     TreasureHunt.newGame();

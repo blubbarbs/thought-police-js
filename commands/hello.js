@@ -1,6 +1,6 @@
 const { Permissions } = require('discord.js');
-const { ScheduleHandler } = require('../handlers/schedule_handler');
-const { client } = require('../bot');
+const { ScheduleHandler } = require('@handlers');
+const { client } = require('@bot');
 
 const HelloScheduler = ScheduleHandler.scheduler('hello_command', sayHello);
 

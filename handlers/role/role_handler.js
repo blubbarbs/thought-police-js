@@ -1,4 +1,4 @@
-const { RoleData, getGuild } = require('../bot.js');
+const { getGuild } = require('@bot');
 
 const ANNOUNCEMENT_CHANNEL_ID = '794518074425475072';
 

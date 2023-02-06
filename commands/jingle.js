@@ -1,6 +1,6 @@
 const { request } = require('undici');
-const { JingleHandler } = require('../handlers/jingle_handler');
-const { assert } = require('../util/checks');
+const { JingleHandler } = require('@handlers');
+const { assert } = require('@util/checks');
 
 async function isAudioURL(_, arg) {
     let contentType = null;

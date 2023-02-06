@@ -1,6 +1,6 @@
-const { toCoordinates } = require('../../util/grid_coords');
-const { PointsHandler } = require('../../handlers/points_handler');
-const { TreasureHunt } = require('../../bot');
+const { toCoordinates } = require('@util/grid_coords');
+const { PointsHandler } = require('@handlers');
+const { TreasureHunt } = require('@games');
 
 async function isValidSpace(_, tileID) {
     const [x, y] = toCoordinates(tileID);

@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { client } = require('../bot.js');
+const { client } = require('@bot');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Collection } = require('discord.js');
-const { Command } = require('../command/command.js');
+const { Command } = require('./command.js');
 
 const restAPI = new REST({ version: '9' }).setToken(process.env.TOKEN);
 

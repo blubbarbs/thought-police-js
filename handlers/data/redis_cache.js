@@ -1,38 +1,8 @@
-const { createClient } = require('redis');
 const { Collection } = require('discord.js');
 
-class DataHandler {
-    static {
-        this.caches = new Collection();
-        this.redis = createClient({ url: process.env.REDIS_URL });
-    }
-
-    static hasKey(key) {
-        return this.caches.has(key);
-    }
-
-    static cache(...namespace) {
-        const firstKey = namespace.shift();
-
-        return this.caches.ensure(firstKey, () => new RedisCache(firstKey))._subcacheNew(...namespace);
-    }
-
-    static async fetchAll() {
-        const promises = [];
-
-        for await (const redisKey of this.redis.scanIterator({ TYPE: 'hash', MATCH: 'c:*'})) {
-            const namespace = redisKey.split(':');
-            const cache = this.cache(...namespace.splice(1));
-
-            promises.push(cache.fetch());
-        }
-
-        return Promise.all(promises);
-    }
-}
-
 class RedisCache {
-    constructor(...namespace) {
+    constructor(redis, ...namespace) {
+        this.redis = redis;
         this.namespace = namespace;
         this.redisPath = 'c:' + this.namespace.join(':');
         this.name = namespace[namespace.length - 1];
@@ -45,7 +15,7 @@ class RedisCache {
 
         const key = namespace.shift();
 
-        return this.subcacheMap.ensure(key, () => new RedisCache(...this.namespace, key))._subcacheNew(...namespace);
+        return this.subcacheMap.ensure(key, () => new RedisCache(this.redis, ...this.namespace, key))._subcacheNew(...namespace);
     }
 
     subcache(...namespace) {
@@ -91,7 +61,7 @@ class RedisCache {
         const cache = this._subcacheNew(...args);
 
         cache.cache.set(key, value);
-        DataHandler.redis.hSet(this.redisPath, key, JSON.stringify(value))
+        this.redis.hSet(this.redisPath, key, JSON.stringify(value))
         .catch(() => console.error('Failed to write for ' + this.name + ' key: ' + key + ' value: ' + value));
     }
 
@@ -109,7 +79,7 @@ class RedisCache {
         const cache = this.subcache(...args);
 
         cache.cache.delete(key);
-        DataHandler.redis.hDel(this.redisPath, key)
+        this.redis.hDel(this.redisPath, key)
         .catch(() => console.error('Failed to delete for ' + this.name + ' key: ' + key));
     }
 
@@ -137,7 +107,7 @@ class RedisCache {
             return Promise.all(promises);
         }
         else {
-            const data = await DataHandler.redis.hGetAll(this.redisPath);
+            const data = await this.redis.hGetAll(this.redisPath);
 
             if (!data) return;
 
@@ -152,6 +122,7 @@ class RedisCache {
         }
     }
 }
+
 module.exports = {
-    DataHandler: DataHandler
+    RedisCache: RedisCache
 }

@@ -1,5 +1,5 @@
-const { TreasureHunt } = require('../../bot');
-const { assert } = require('../../util/checks');
+const { TreasureHunt } = require('@games');
+const { assert } = require('@util/checks');
 
 async function execute(interaction) {
     TreasureHunt.addFreeDigs(interaction.member.id, -1);

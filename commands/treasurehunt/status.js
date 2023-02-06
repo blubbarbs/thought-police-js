@@ -1,4 +1,4 @@
-const { TreasureHunt } = require("../../bot");
+const { TreasureHunt } = require("@games");
 
 async function execute(interaction) {
     const minutesTillDaily = TreasureHunt.getMinutesTillNextDig(interaction.member.id);

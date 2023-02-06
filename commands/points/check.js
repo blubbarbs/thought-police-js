@@ -1,4 +1,4 @@
-const { PointsHandler } = require("../../handlers/points_handler");
+const { PointsHandler } = require("@handlers");
 
 async function execute(interaction, args) {
     const target = args['target'] == null ? interaction.member : args['target'];

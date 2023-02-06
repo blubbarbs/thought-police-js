@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { PointsHandler } = require('../../handlers/points_handler');
+const { PointsHandler } = require('@handlers');
 
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;

@@ -1,4 +1,4 @@
-const processors = require('./command_arg_processors.js');
+const parsers = require('./command_arg_parsers.js');
 
 class CommandArgument {
     constructor(name, argObject, command) {
@@ -86,10 +86,10 @@ class CommandArgument {
     }
 
     async process(interaction) {
-        const processor = processors[this.type] || processors['string'];
-        const processedArgument = await processor(interaction, this.name);
+        const parser = parsers[this.type] || parsers['string'];
+        const parsedArgument = await parser(interaction, this.name);
 
-        if (processedArgument == null) {
+        if (parsedArgument == null) {
             return null;
         }
 
@@ -98,10 +98,10 @@ class CommandArgument {
         }
 
         for (const check of this.checks) {
-            await check(interaction, processedArgument);
+            await check(interaction, parsedArgument);
         }
 
-        return processedArgument;
+        return parsedArgument;
     }
 }
 

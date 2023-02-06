@@ -1,8 +1,8 @@
-const { randomInt } = require("../util/random");
-const { getNumberEmoji, getLetterEmoji } = require('../util/emoji');
-const { toAlphanumeric } = require('../util/grid_coords');
+const { randomInt } = require("@util/random");
+const { getNumberEmoji, getLetterEmoji } = require('@util/emoji');
+const { toAlphanumeric } = require('@util/grid_coords');
+const { DataHandler } = require("@handlers");
 const { Game } = require("./game");
-const { DataHandler } = require("../handlers/data_handler");
 
 class GridGame extends Game {
     constructor(name, redis) {

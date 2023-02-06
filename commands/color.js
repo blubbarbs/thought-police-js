@@ -1,6 +1,6 @@
 const { Permissions } = require('discord.js');
-const { getGuild } = require('../bot');
-const { assert } = require('../util/checks');
+const { getGuild } = require('@bot');
+const { assert } = require('@util/checks');
 
 const hexRegex = /#[0-9A-Fa-f]{6}/;
 

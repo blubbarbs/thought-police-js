@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { MudaeHandler } = require('../../handlers/mudae_handler');
+const { MudaeHandler } = require('@handlers');
 
 async function execute(interaction) {
     await MudaeHandler.enableMudae(true);

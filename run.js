@@ -1,12 +1,15 @@
+require('module-alias/register');
 require('dotenv').config();
 process.env.TZ = 'America/Los_Angeles';
 
 const path = require('node:path');
-const { client } = require('./bot');
-const { MudaeHandler } = require('./handlers/mudae_handler');
-const { CommandHandler } = require('./handlers/command_handler');
-const { DataHandler } = require('./handlers/data_handler');
-const { ScheduleHandler } = require('./handlers/schedule_handler');
+const { client } = require('@bot');
+const {
+    MudaeHandler,
+    CommandHandler,
+    DataHandler,
+    ScheduleHandler
+} = require('@handlers');
 
 async function start() {
     await DataHandler.redis.connect();

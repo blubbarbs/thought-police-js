@@ -1,5 +1,5 @@
 const { Permissions } = require('discord.js');
-const { RoleHandler } = require('../../handlers/role_handler');
+const { RoleHandler } = require('@handlers');
 
 async function execute(interaction, args) {
     const role = args['role'];

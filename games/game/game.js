@@ -1,4 +1,4 @@
-const { DataHandler } = require('../handlers/data_handler.js');
+const { DataHandler } = require('@handlers');
 
 class Game {
     constructor(name) {

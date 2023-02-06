@@ -1,4 +1,4 @@
-const { getGuild } = require('../bot.js');
+const { getGuild } = require('@bot');
 const { Permissions } = require("discord.js");
 
 const EVERYONE_ROLE_ID = '209496826204782592';

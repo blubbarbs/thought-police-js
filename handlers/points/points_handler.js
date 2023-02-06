@@ -1,4 +1,5 @@
-const { UserData, getGuild } = require('../bot.js');
+const { getGuild } = require('@bot');
+const { UserData } = require('@data');
 
 const LEADERBOARD_CHANNEL_ID = '987990655601102899';
 

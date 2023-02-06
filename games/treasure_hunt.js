@@ -1,6 +1,6 @@
-const { DataHandler } = require('../handlers/data_handler');
-const { GridGame } = require('../game/gridgame.js');
-const { randomGaussian, randomInt, roll } = require('../util/random.js');
+const { DataHandler } = require('@handlers');
+const { GridGame } = require('./game/gridgame');
+const { randomGaussian, randomInt, roll } = require('@util/random');
 
 const GAME_NAME = 'treasure_hunt';
 const GRID_LENGTH = 10;

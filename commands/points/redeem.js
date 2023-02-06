@@ -1,4 +1,4 @@
-const { PointsHandler } = require("../../handlers/points_handler");
+const { PointsHandler } = require("@handlers");
 
 async function hasEnoughPoints(interaction, arg) {
     const price = PointsHandler.rewards[arg].price;
