@@ -12,7 +12,6 @@ const {
 } = require('@handlers');
 
 async function start() {
-    await DataHandler.redis.connect();
     await CommandHandler.reloadCommands(path.join(__dirname, 'commands'));
 
     client.on('ready', onReady);
@@ -24,6 +23,7 @@ async function start() {
 
 async function onReady() {
     await MudaeHandler.updateCurfew();
+    await DataHandler.redis.connect();
     await DataHandler.fetchAll();
     await ScheduleHandler.loadSchedulers();
 
@@ -33,7 +33,7 @@ async function onReady() {
 async function onDisconnect() {
     await DataHandler.redis.disconnect();
     await MudaeHandler.haltCurfew();
-    await ScheduleHandler.unscheduleAll();
+    await ScheduleHandler.unloadAll();
 }
 
 async function onInteract(interaction) {

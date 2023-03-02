@@ -1,6 +1,6 @@
 const { Collection } = require('discord.js');
-const { DataHandler } = require('@root/handlers/data/data_handler');
 const { Scheduler } = require('./scheduler');
+const { client } = require('@bot');
 
 class ScheduleHandler {
     static {
@@ -10,17 +10,14 @@ class ScheduleHandler {
     static async loadSchedulers() {
         const promises = [];
 
-        for await (const redisPath of DataHandler.redis.scanIterator({ TYPE: 'hash', MATCH: 's:*'})) {
-            const name = redisPath.split(':')[1];
-            const scheduler = this.scheduler(name);
-
+        for (const scheduler of this.schedulers.values()) {
             promises.push(scheduler.fetchTasks());
         }
 
         return Promise.all(promises);
     }
 
-    static async unscheduleAll() {
+    static async unloadAll() {
         for (const scheduler of this.schedulers.values()) {
             for (const scheduleID of scheduler.scheduleIDs.values()) {
                 clearTimeout(scheduleID);
@@ -28,14 +25,15 @@ class ScheduleHandler {
         }
     }
 
-    static scheduler(name, callback) {
-        const scheduler = this.schedulers.ensure(name, () => new Scheduler(name, () => console.error('Unitialized scheduler ' + name + 'attempted callback')));
-
-        if (callback != null) {
-            scheduler.callback = callback;
+    static registerScheduler(name, callback) {
+        if (client.isReady()) {
+            throw 'Cannot register a scheduler if the bot is already running!';
         }
-
-        return scheduler;
+        else {
+            const scheduler = new Scheduler(name, callback);
+            this.schedulers.set(name, scheduler);
+            return scheduler;
+        }
     }
 }
 
