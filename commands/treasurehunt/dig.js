@@ -48,7 +48,7 @@ async function execute(interaction, args) {
     }
 
     if (freeDigs != null) {
-        TreasureHunt.addFreeDigs(interaction.member.id, freeDigs);
+        TreasureHunt.playerData.add('free_digs', interaction.member.id, freeDigs);
         rewardMessage += `**${freeDigs}** free dig(s) \n`;
     }
 
