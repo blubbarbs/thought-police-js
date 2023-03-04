@@ -1,6 +1,8 @@
 const { DataHandler } = require('@handlers');
 const { GridGame } = require('./game/gridgame');
+const { UserData } = require('@data');
 const { randomGaussian, randomInt, roll } = require('@util/random');
+const { User } = require('discord.js');
 
 const GAME_NAME = 'treasure_hunt';
 const GRID_LENGTH = 10;
@@ -46,7 +48,11 @@ class TreasureHuntGame extends GridGame {
     }
 
     getFreeDigs(id) {
-        return this.playerData.get('free_digs', id);
+        return UserData.get('free_digs', id);
+    }
+
+    addFreeDigs(id, freeDigs) {
+        UserData.add('free_digs', id, freeDigs);
     }
 
     getMinutesTillNextDig(id) {
@@ -134,7 +140,7 @@ class TreasureHuntGame extends GridGame {
     }
 
     newGame() {
-        this.playerData.subcache('last_dig_time')?.clear();
+        this.playerData.clear(true);
         this.tileData.clear(true);
         this.tileTreasureData.clear(true);
         this.tileDisplayData.clear(true);
