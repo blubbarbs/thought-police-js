@@ -39,7 +39,7 @@ class TreasureHuntGame extends GridGame {
     getTileTreasure(tileID) {
         const treasure = {};
 
-        for (const treasureCache of this.tileTreasureData.node()) {
+        for (const treasureCache of this.tileTreasureData.nodes()) {
             const value = treasureCache.get(tileID);
 
             if (value) {
