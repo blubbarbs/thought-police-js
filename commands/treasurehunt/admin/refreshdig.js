@@ -4,7 +4,7 @@ const { TreasureHunt } = require('@games');
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
 
-    TreasureHunt.playerData.subcache('last_dig_time').delete(target.id);
+    TreasureHunt.playerData.node('last_dig_time').delete(target.id);
 
     if (target == interaction.member) {
         await interaction.reply({ content: `Successfully refreshed your dig cycle.`, ephemeral: true });

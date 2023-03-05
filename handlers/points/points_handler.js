@@ -23,7 +23,7 @@ class PointsHandler {
             }
         }
 
-        this.points = UserData.subcache('points');
+        this.points = UserData.node('points');
     }
 
     static async getPoints(id) {

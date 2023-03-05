@@ -21,7 +21,7 @@ class TreasureHuntGame extends GridGame {
     constructor(redis) {
         super(GAME_NAME, redis);
 
-        this.tileTreasureData = this.tileData.subcache('tile_treasure');
+        this.tileTreasureData = this.tileData.node('tile_treasure');
     }
 
     get jackpot() {
@@ -33,13 +33,13 @@ class TreasureHuntGame extends GridGame {
     }
 
     isTileDug(tileID) {
-        return this.tileData.subcache('is_dug').get(tileID) == true;
+        return this.tileData.node('is_dug').get(tileID) == true;
     }
 
     getTileTreasure(tileID) {
         const treasure = {};
 
-        for (const treasureCache of this.tileTreasureData.subcaches()) {
+        for (const treasureCache of this.tileTreasureData.node()) {
             const value = treasureCache.get(tileID);
 
             if (value) {
@@ -55,15 +55,15 @@ class TreasureHuntGame extends GridGame {
     }
 
     getFreeDigs(id) {
-        return UserData.subcache('free_digs').get(id) || 0;
+        return UserData.node('free_digs').get(id) || 0;
     }
 
     addFreeDigs(id, freeDigs) {
-        UserData.subcache('free_digs').add(id, freeDigs);
+        UserData.node('free_digs').add(id, freeDigs);
     }
 
     getMinutesTillNextDig(id) {
-        const lastDigTime = this.playerData.subcache('last_dig_time').get(id);
+        const lastDigTime = this.playerData.node('last_dig_time').get(id);
 
         if (lastDigTime == null) return 0;
 
@@ -84,7 +84,7 @@ class TreasureHuntGame extends GridGame {
         let left = 0;
 
         for (const tileID of this.tiles()) {
-            const treasureAmount = this.tileTreasureData.subcache(treasureName).get(tileID) || 0;
+            const treasureAmount = this.tileTreasureData.node(treasureName).get(tileID) || 0;
 
             if (!this.isTileDug(tileID) && treasureAmount > 0) {
                 left += treasureAmount;
@@ -133,15 +133,15 @@ class TreasureHuntGame extends GridGame {
             const tileID = this.randomTile();
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(tileID) : treasureAmountGenerator;
 
-            this.tileTreasureData.subcache(treasureName).set(tileID, treasureAmount);
+            this.tileTreasureData.node(treasureName).set(tileID, treasureAmount);
         }
     }
 
     dig(id, tileID) {
         const treasure = this.getTileTreasure(tileID);
         this.tileDisplayData.set(tileID, treasure != null ? '⭕' : '✖️');
-        this.tileData.subcache('is_dug').set(tileID, true);
-        this.playerData.subcache('last_dig_time').set(id, Date.now());
+        this.tileData.node('is_dug').set(tileID, true);
+        this.playerData.node('last_dig_time').set(id, Date.now());
 
         return treasure;
     }
