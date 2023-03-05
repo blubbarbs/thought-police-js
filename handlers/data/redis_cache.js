@@ -1,29 +1,24 @@
 const { Collection } = require('discord.js');
 
-class RedisCache {
+class RedisCache extends Collection {
     constructor(redis, ...namespace) {
+        super();
+
         this.redis = redis;
-        this.namespace = namespace;
-        this.redisPath = 'c:' + this.namespace.join(':');
         this.name = namespace[namespace.length - 1];
-        this.cache = new Collection();
+        this.namespace = namespace;
+        this.redisPath = ['c', ...this.namespace].join(':');
         this.subcacheMap = new Collection();
     }
 
-    _subcacheNew(...namespace) {
-        if (namespace.length == 0) return this;
-
-        const key = namespace.shift();
-
-        return this.subcacheMap.ensure(key, () => new RedisCache(this.redis, ...this.namespace, key))._subcacheNew(...namespace);
-    }
-
     subcache(...namespace) {
-        if (namespace.length == 0) return this;
+        let cache = this;
 
-        const key = namespace.shift();
+        for (const key of namespace) {
+            cache = cache.subcacheMap.ensure(key, () => new RedisCache(this.redis, ...cache.namespace, key));
+        }
 
-        return this.subcacheMap.get(key)?.subcache(...namespace);
+        return cache;
     }
 
     *subcaches(deep = false) {
@@ -41,44 +36,20 @@ class RedisCache {
         }
     }
 
-    keys() {
-        return this.cache.keys();
-    }
-
-    hasKey(...args) {
-        return this.get(...args) != null;
-    }
-
-    get(...args) {
-        const key = args.pop();
-
-        return this.subcache(...args)?.cache.get(key);
-    }
-
-    set(...args) {
-        const value = args.pop();
-        const key = args.pop();
-        const cache = this._subcacheNew(...args);
-
-        cache.cache.set(key, value);
+    set(key, value) {
+        super.set(key, value);
         this.redis.hSet(this.redisPath, key, JSON.stringify(value))
         .catch(() => console.error('Failed to write for ' + this.name + ' key: ' + key + ' value: ' + value));
     }
 
-    add(...args) {
-        const value = args.pop();
-        const key = args.pop();
-        const cache = this._subcacheNew(...args);
-        const oldValue = cache.cache.get(key) || 0;
+    add(key, value) {
+        const oldValue = super.get(key) || 0;
 
-        cache.set(key, oldValue + value);
+        this.set(key, oldValue + value);
     }
 
-    delete(...args) {
-        const key = args.pop();
-        const cache = this.subcache(...args);
-
-        cache.cache.delete(key);
+    delete(key) {
+        super.delete(key);
         this.redis.hDel(this.redisPath, key)
         .catch(() => console.error('Failed to delete for ' + this.name + ' key: ' + key));
     }
@@ -90,8 +61,8 @@ class RedisCache {
             }
         }
         else {
-            this.cache.clear();
-            DataHandler.redis.del(this.redisPath)
+            super.clear();
+            this.redis.del(this.redisPath)
             .catch(() => console.error('Failed to clear for ' + this.name));
         }
     }
@@ -111,13 +82,13 @@ class RedisCache {
 
             if (!data) return;
 
-            this.cache.clear();
+            super.clear();
 
             console.info('Fetching ' + this.redisPath);
 
             for (const [key, value] of Object.entries(data)) {
                 console.info(`${key}: ${value}`);
-                this.cache.set(key, JSON.parse(value));
+                super.set(key, JSON.parse(value));
             }
         }
     }

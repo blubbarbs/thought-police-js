@@ -3,7 +3,7 @@ const { assert } = require('@util/checks');
 
 async function execute(interaction) {
     TreasureHunt.addFreeDigs(interaction.member.id, -1);
-    TreasureHunt.playerData.delete('last_dig_time', interaction.member.id);
+    TreasureHunt.playerData.subcache('last_dig_time').delete(interaction.member.id);
 
     await interaction.reply({ content: 'Your dig cycle has been refreshed. You may dig again.', ephemeral: true });
 }

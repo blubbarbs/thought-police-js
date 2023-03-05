@@ -22,14 +22,16 @@ class PointsHandler {
                 description: 'Add a new sticker for the server.'
             }
         }
+
+        this.points = UserData.subcache('points');
     }
 
     static async getPoints(id) {
-        return UserData.get('points', id);
+        return this.points.get(id);
     }
 
     static async setPoints(id, points, shouldUpdateLeaderboard = true) {
-        UserData.set('points', id, points);
+        this.points.set(id, points);
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
@@ -37,7 +39,7 @@ class PointsHandler {
     }
 
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
-        UserData.add('points', id, deltaPoints);
+        this.points.add(id, deltaPoints);
 
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
@@ -45,20 +47,14 @@ class PointsHandler {
     }
 
     static async getLeaderboard(end, start) {
-        const scores = UserData.subcache('points')?.cache;
-
-        if (!scores) {
-            return [];
-        }
-
-        const leaderboardKeysSorted = Array.from(scores.keys()).sort((a, b) => scores[b] - scores[a]);
+        const leaderboardKeysSorted = Array.from(this.points.keys()).sort((a, b) => this.points[b] - this.points[a]);
         const leaderboard = [];
         start = start == null || start < 0 ? 0 : start;
         end = end == null || end >= leaderboardKeysSorted.length ? leaderboardKeysSorted.length : end;
 
         for (let i = start; i < end; i++) {
             const key = leaderboardKeysSorted[i];
-            leaderboard[i] = { rank: '' + (i + 1), points: '' + scores.get(key), id: key };
+            leaderboard[i] = { rank: '' + (i + 1), points: '' + this.points.get(key), id: key };
         }
 
         return leaderboard;

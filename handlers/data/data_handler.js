@@ -8,22 +8,23 @@ class DataHandler {
         this.redis = createClient({ url: process.env.REDIS_URL });
     }
 
-    static hasKey(key) {
-        return this.caches.has(key);
-    }
-
     static cache(...namespace) {
-        const firstKey = namespace.shift();
+        if (namespace.length == 0) {
+            return null;
+        }
+        else {
+            const key = namespace.shift();
+            return this.caches.ensure(key, () => new RedisCache(this.redis, key)).subcache(...namespace);
+        }
 
-        return this.caches.ensure(firstKey, () => new RedisCache(this.redis, firstKey))._subcacheNew(...namespace);
     }
 
     static async fetchAll() {
         const promises = [];
 
         for await (const redisKey of this.redis.scanIterator({ TYPE: 'hash', MATCH: 'c:*'})) {
-            const namespace = redisKey.split(':');
-            const cache = this.cache(...namespace.splice(1));
+            const namespace = redisKey.split(':').splice(1);
+            const cache = this.cache(...namespace);
 
             promises.push(cache.fetch());
         }

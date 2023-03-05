@@ -8,8 +8,8 @@ class GridGame extends Game {
     constructor(name, redis) {
         super(name, redis);
 
-        this.tileDisplayData = DataHandler.cache(name, 'tile_display');
         this.tileData = DataHandler.cache(name, 'tile_data');
+        this.tileDisplayData = this.tileData.subcache('tile_display');
     }
 
     get length() {
@@ -22,6 +22,18 @@ class GridGame extends Game {
 
     get defaultTileDisplay() {
         return this.settings.get('default_tile_display');
+    }
+
+    set length(length) {
+        this.settings.set('length', length);
+    }
+
+    set width(width) {
+        this.settings.set('width', width);
+    }
+
+    set defaultTileDisplay(defaultDisplay) {
+        this.settings.set('default_tile_display', defaultDisplay);
     }
 
     findTiles(predicate) {

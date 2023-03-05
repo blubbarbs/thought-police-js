@@ -2,7 +2,7 @@ const { PointsHandler } = require("@handlers");
 
 async function hasEnoughPoints(interaction, arg) {
     const price = PointsHandler.rewards[arg].price;
-    const points = await PointsHandler.getPoints(interaction.member.id);
+    const points = PointsHandler.points.get(interaction.member.id);
 
     if (points < price) {
         throw `You need ${price - points} more points to purchase this reward.`;

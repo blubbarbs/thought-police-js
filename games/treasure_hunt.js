@@ -2,7 +2,6 @@ const { DataHandler } = require('@handlers');
 const { GridGame } = require('./game/gridgame');
 const { UserData } = require('@data');
 const { randomGaussian, randomInt, roll } = require('@util/random');
-const { User } = require('discord.js');
 
 const GAME_NAME = 'treasure_hunt';
 const GRID_LENGTH = 10;
@@ -22,11 +21,19 @@ class TreasureHuntGame extends GridGame {
     constructor(redis) {
         super(GAME_NAME, redis);
 
-        this.tileTreasureData = DataHandler.cache(GAME_NAME, 'tile_treasure');
+        this.tileTreasureData = this.tileData.subcache('tile_treasure');
+    }
+
+    get jackpot() {
+        return this.settings.get('jackpot');
+    }
+
+    set jackpot(jackpot) {
+        return this.settings.set('jackpot', jackpot);
     }
 
     isTileDug(tileID) {
-        return this.tileData.get('is_dug', tileID) == true;
+        return this.tileData.subcache('is_dug').get(tileID) == true;
     }
 
     getTileTreasure(tileID) {
@@ -48,15 +55,15 @@ class TreasureHuntGame extends GridGame {
     }
 
     getFreeDigs(id) {
-        return UserData.get('free_digs', id);
+        return UserData.subcache('free_digs').get(id) || 0;
     }
 
     addFreeDigs(id, freeDigs) {
-        UserData.add('free_digs', id, freeDigs);
+        UserData.subcache('free_digs').add(id, freeDigs);
     }
 
     getMinutesTillNextDig(id) {
-        const lastDigTime = this.playerData.get('last_dig_time', id);
+        const lastDigTime = this.playerData.subcache('last_dig_time').get(id);
 
         if (lastDigTime == null) return 0;
 
@@ -77,7 +84,7 @@ class TreasureHuntGame extends GridGame {
         let left = 0;
 
         for (const tileID of this.tiles()) {
-            const treasureAmount = this.tileTreasureData.get(treasureName, tileID) || 0;
+            const treasureAmount = this.tileTreasureData.subcache(treasureName).get(tileID) || 0;
 
             if (!this.isTileDug(tileID) && treasureAmount > 0) {
                 left += treasureAmount;
@@ -96,7 +103,7 @@ class TreasureHuntGame extends GridGame {
 
     getBoardEmbed() {
         const embed = {
-            color: this.settings.get('jackpot') == true ? '#ebf2a0' : '#bccbeb',
+            color: this.jackpot ? '#ebf2a0' : '#bccbeb',
             title: 'Treasure Hunt!',
             fields: [
                 {
@@ -126,15 +133,15 @@ class TreasureHuntGame extends GridGame {
             const tileID = this.randomTile();
             const treasureAmount = typeof treasureAmountGenerator == 'function' ? treasureAmountGenerator(tileID) : treasureAmountGenerator;
 
-            this.tileTreasureData.add(treasureName, tileID, treasureAmount);
+            this.tileTreasureData.subcache(treasureName).set(tileID, treasureAmount);
         }
     }
 
     dig(id, tileID) {
         const treasure = this.getTileTreasure(tileID);
         this.tileDisplayData.set(tileID, treasure != null ? '⭕' : '✖️');
-        this.tileData.set('is_dug', tileID, true);
-        this.playerData.set('last_dig_time', id, Date.now());
+        this.tileData.subcache('is_dug').set(tileID, true);
+        this.playerData.subcache('last_dig_time').set(id, Date.now());
 
         return treasure;
     }
@@ -142,11 +149,8 @@ class TreasureHuntGame extends GridGame {
     newGame() {
         this.playerData.clear(true);
         this.tileData.clear(true);
-        this.tileTreasureData.clear(true);
-        this.tileDisplayData.clear(true);
-
-        this.settings.set('length', GRID_LENGTH);
-        this.settings.set('width', GRID_WIDTH);
+        this.length = GRID_LENGTH;
+        this.width = GRID_WIDTH;
 
         if (roll(JACKPOT_PROBABILITY)) {
             const jackpotAmount = randomInt(MAX_POINTS_JACKPOT, MIN_POINTS_JACKPOT);
@@ -154,8 +158,8 @@ class TreasureHuntGame extends GridGame {
 
             this.distributeTreasure(1, 'points', jackpotAmount);
             this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
-            this.settings.set('jackpot', true);
-            this.settings.set('default_tile_display', '🟨');
+            this.jackpot = true;
+            this.defaultTileDisplay =  '🟨';
         }
         else {
             const numPointRolls = randomInt(MAX_POINT_ROLLS, MIN_POINT_ROLLS);
@@ -164,8 +168,8 @@ class TreasureHuntGame extends GridGame {
 
             this.distributeTreasure(numPointRolls, 'points', () => Math.round(randomGaussian(averagePoints, averagePoints * .2)));
             this.distributeTreasure(numFreeDigRolls, 'free_digs', 1);
-            this.settings.set('jackpot', false);
-            this.settings.set('default_tile_display', '🔲');
+            this.jackpot = true;
+            this.defaultTileDisplay = '🔲';
         }
     }
 }

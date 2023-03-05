@@ -11,15 +11,15 @@ async function execute(interaction, args) {
     await interaction.deferReply({ ephemeral: true });
 
     for (const member of first) {
-        UserData.add(member.id, 'points', pointPrize);
+        PointsHandler.points.add(member.id, pointPrize);
     }
 
     for (const member of second) {
-        UserData.add(member.id, 'points', Math.round(pointPrize * .6));
+        PointsHandler.points.add(member.id, Math.round(pointPrize * .6));
     }
 
     for (const member of third) {
-        UserData.add(member.id, 'points', Math.round(pointPrize * .3));
+        PointsHandler.points.add(member.id, Math.round(pointPrize * .3));
     }
 
     await PointsHandler.updateLeaderboard();
