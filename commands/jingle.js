@@ -1,6 +1,8 @@
 const { request } = require('undici');
 const { JingleHandler } = require('@handlers');
 const { assert } = require('@util/checks');
+const ArgTypes = require('@command-arg-types');
+
 
 async function isAudioURL(_, arg) {
     let contentType = null;
@@ -30,7 +32,7 @@ module.exports = {
     description: 'Plays a jingle to your currently connected voice chat.',
     args: {
         url: {
-            type: 'string',
+            type: ArgTypes.STRING,
             description: 'URL directing to the audio file to be played.',
             required: true,
             checks: [isAudioURL]

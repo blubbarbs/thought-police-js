@@ -1,3 +1,5 @@
+const ArgTypes = require('@command-arg-types');
+
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
     const roleCount = target.roles.cache.size - 1;
@@ -14,7 +16,7 @@ module.exports = {
     description: 'Counts the amount of roles a user has.',
     args: {
         target: {
-            type: 'member',
+            type: ArgTypes.MEMBER,
             description: 'User whose roles you want to see.'
         }
     },

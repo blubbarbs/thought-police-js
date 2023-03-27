@@ -27,6 +27,8 @@
     "@handlers": "./path_exports/handlers",
     "@games": "./path_exports/games",
     "@data": "./path_exports/data",
-    "@util": "./util"
+    "@util": "./util",
+    "@parsers": "./parsers",
+    "@command-arg-types": "./path_exports/arg_types"
   }
 }

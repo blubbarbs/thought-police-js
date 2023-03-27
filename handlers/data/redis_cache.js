@@ -8,29 +8,29 @@ class RedisCache extends Collection {
         this.name = namespace[namespace.length - 1];
         this.namespace = namespace;
         this.redisPath = ['c', ...this.namespace].join(':');
-        this.nodeMap = new Collection();
+        this.childMap = new Collection();
     }
 
-    node(...namespace) {
+    child(...namespace) {
         let cache = this;
 
         for (const key of namespace) {
-            cache = cache.nodeMap.ensure(key, () => new RedisCache(this.redis, ...cache.namespace, key));
+            cache = cache.childMap.ensure(key, () => new RedisCache(this.redis, ...cache.namespace, key));
         }
 
         return cache;
     }
 
-    *nodes(deep = false) {
+    *children(deep = false) {
         if (deep) {
             yield this;
 
-            for (const cache of this.nodeMap.values()) {
-                yield *cache.nodes(true);
+            for (const cache of this.childMap.values()) {
+                yield *cache.children(true);
             }
         }
         else {
-            for (const cache of this.nodeMap.values()) {
+            for (const cache of this.childMap.values()) {
                 yield cache;
             }
         }
@@ -56,7 +56,7 @@ class RedisCache extends Collection {
 
     clear(deep = false) {
         if (deep) {
-            for (const cache of this.nodes(true)) {
+            for (const cache of this.children(true)) {
                 cache.clear();
             }
         }
@@ -71,7 +71,7 @@ class RedisCache extends Collection {
         if (deep) {
             const promises = [];
 
-            for (const cache of this.nodes(true)) {
+            for (const cache of this.children(true)) {
                 promises.push(cache.fetch());
             }
 

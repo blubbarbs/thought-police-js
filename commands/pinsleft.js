@@ -1,4 +1,4 @@
-async function execute(interaction, args) {
+async function execute(interaction) {
     const pinnedMessages = await interaction.channel.messages.fetchPinned();
     const pinCount = pinnedMessages.size;
 

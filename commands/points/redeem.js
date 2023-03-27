@@ -1,4 +1,5 @@
 const { PointsHandler } = require("@handlers");
+const ArgTypes = require('@command-arg-types');
 
 async function hasEnoughPoints(interaction, arg) {
     const price = PointsHandler.rewards[arg].price;
@@ -19,7 +20,7 @@ module.exports = {
     description: 'Redeems a reward from the rewards shop.',
     args: {
         reward: {
-            type: 'string',
+            type: ArgTypes.STRING,
             description: 'The item you want to redeem. For a detailed description, see /points rewards.',
             choices: {
                 change_nickname: 'Nickname Change - 50 points',

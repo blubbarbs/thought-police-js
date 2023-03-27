@@ -23,7 +23,7 @@ class PointsHandler {
             }
         }
 
-        this.points = UserData.node('points');
+        this.points = UserData.child('points');
     }
 
     static async getPoints(id) {
@@ -36,6 +36,8 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
+
+        return this.points.get(id);
     }
 
     static async addPoints(id, deltaPoints, shouldUpdateLeaderboard = true) {
@@ -44,6 +46,8 @@ class PointsHandler {
         if (shouldUpdateLeaderboard) {
             await this.updateLeaderboard();
         }
+
+        return this.points.get(id);
     }
 
     static async getLeaderboard(end, start) {

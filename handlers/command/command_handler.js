@@ -34,7 +34,8 @@ class CommandHandler {
         }
 
         await restAPI.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: client.commands });
-        console.log('All commands loaded.');
+        console.info('All commands loaded.');
+        console.log(JSON.stringify(client.commands, null, 4));
     }
 }
 

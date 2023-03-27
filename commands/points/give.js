@@ -1,5 +1,6 @@
 const { Permissions } = require('discord.js');
 const { PointsHandler } = require('@handlers');
+const ArgTypes = require('@command-arg-types');
 
 async function execute(interaction, args) {
     const target = args['target'] || interaction.member;
@@ -36,12 +37,12 @@ module.exports = {
     description: 'Gives (or takes away) points from a specific member.',
     args: {
         points: {
-            type: 'integer',
+            type: ArgTypes.INTEGER,
             description: 'How many points you want to add (or take away).',
             required: true
         },
         target: {
-            type: 'member',
+            type: ArgTypes.MEMBER,
             description: 'The person whose points you want to add/subtract.'
         }
     },

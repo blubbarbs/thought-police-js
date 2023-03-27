@@ -1,6 +1,6 @@
 const { Permissions } = require('discord.js');
-const { UserData } = require('@bot');
 const { PointsHandler } = require('@handlers');
+const ArgTypes = require('@command-arg-types');
 
 async function execute(interaction, args) {
     const pointPrize = args['points'];
@@ -30,21 +30,24 @@ module.exports = {
     description: 'Awards points for winning a game',
     args: {
         points: {
-            type: 'integer',
+            type: ArgTypes.INTEGER,
             description: 'The amount of points 1st place gets. Point distribution is: 1st (100%), 2nd (60%), 3rd (30%).',
             required: true
         },
         first: {
-            type: 'member_list',
+            type: ArgTypes.MEMBER,
+            num: '+',
             description: 'The members who got 1st place.',
             required: true
         },
         second: {
-            type: 'member_list',
+            type: ArgTypes.MEMBER,
+            num: '+',
             description: 'The members who got 2nd place.'
         },
         third: {
-            type: 'member_list',
+            type: ArgTypes.MEMBER,
+            num: '+',
             description: 'The members who got 3rd place.'
         }
     },

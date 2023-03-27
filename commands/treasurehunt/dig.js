@@ -1,6 +1,7 @@
 const { toCoordinates } = require('@util/grid_coords');
 const { PointsHandler } = require('@handlers');
 const { TreasureHunt } = require('@games');
+const ArgTypes = require('@command-arg-types');
 
 async function isValidSpace(_, tileID) {
     const [x, y] = toCoordinates(tileID);
@@ -65,7 +66,7 @@ module.exports = {
     description: 'Dig for daily treasure!',
     args: {
         coordinates: {
-            type : 'grid_coordinates',
+            type : ArgTypes.GRID_COORDINATES,
             description: 'Coordinates of where to dig.',
             required: true,
             checks: [isFreeSpace]

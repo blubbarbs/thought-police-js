@@ -9,7 +9,7 @@ class GridGame extends Game {
         super(name, redis);
 
         this.tileData = DataHandler.cache(name, 'tile_data');
-        this.tileDisplayData = this.tileData.node('tile_display');
+        this.tileDisplayData = this.tileData.child('tile_display');
     }
 
     get length() {

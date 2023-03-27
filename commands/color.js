@@ -1,6 +1,7 @@
 const { Permissions } = require('discord.js');
 const { getGuild } = require('@bot');
 const { assert } = require('@util/checks');
+const ArgTypes = require('@command-arg-types');
 
 const hexRegex = /#[0-9A-Fa-f]{6}/;
 
@@ -56,13 +57,13 @@ module.exports = {
     description: 'Changes the color of your name to a given hex color.',
     args: {
         color: {
-            type: 'string',
+            type: ArgTypes.STRING,
             description: "Hex color you want to change to.",
             required: true,
             checks: [assert((_, arg) => arg.match(hexRegex) != null, 'That is not a valid color hex.')]
         },
         target: {
-            type: 'member',
+            type: ArgTypes.MEMBER,
             description: "Member whose color you want to change.",
             permissions: Permissions.FLAGS.MODERATE_MEMBERS
         }

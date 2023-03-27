@@ -14,7 +14,7 @@ class DataHandler {
         }
         else {
             const key = namespace.shift();
-            return this.caches.ensure(key, () => new RedisCache(this.redis, key)).node(...namespace);
+            return this.caches.ensure(key, () => new RedisCache(this.redis, key)).child(...namespace);
         }
 
     }

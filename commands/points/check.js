@@ -1,4 +1,5 @@
 const { PointsHandler } = require("@handlers");
+const ArgTypes = require('@command-arg-types');
 
 async function execute(interaction, args) {
     const target = args['target'] == null ? interaction.member : args['target'];
@@ -34,7 +35,7 @@ module.exports = {
     description: 'Checks point count.',
     args: {
         target: {
-            type: 'member',
+            type: ArgTypes.MEMBER,
             description: 'The person whose points you want to check.'
         }
     },

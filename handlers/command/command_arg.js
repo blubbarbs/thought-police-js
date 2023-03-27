@@ -1,12 +1,13 @@
-const parsers = require('./command_arg_parsers.js');
+const ArgTypes = require('@command-arg-types')
 
 class CommandArgument {
     constructor(name, argObject, command) {
         this.name = name;
         this.command = command;
-        this.type = argObject.type || 'string';
+        this.type = argObject.type || ArgTypes.STRING;
         this.description = argObject.description || 'N/A';
         this.permissions = argObject.permissions || [];
+        this.num = argObject.num || 1;
         this.checks = argObject.checks || [];
         this.required = argObject.required == true;
         this.choices = [];
@@ -25,55 +26,11 @@ class CommandArgument {
         }
     }
 
-    isDefaultType() {
-        switch(this.type) {
-            case 'user':
-            case 'member':
-            case 'role':
-            case 'channel':
-            case 'mentionable':
-            case 'integer':
-            case 'number':
-            case 'string':
-            case 'boolean':
-            case 'attachment':
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    getDiscordAPIType() {
-        switch(this.type) {
-            case 'string':
-                return 3;
-            case 'integer':
-                return 4;
-            case 'boolean':
-                return 5;
-            case 'user':
-            case 'member':
-                return 6;
-            case 'channel':
-                return 7;
-            case 'role':
-                return 8;
-            case 'mentionable':
-                return 9;
-            case 'number':
-                return 10;
-            case 'attachment':
-                return 11;
-            default:
-                return 3;
-        }
-    }
-
     toDiscordAPI() {
         const obj = {
             name: this.name,
             description: this.description,
-            type: this.getDiscordAPIType(),
+            type: this.num == 1 ? this.type.discordAPIType : ArgTypes.STRING.discordAPIType,
             required: this.required,
             choices: this.choices
         };
@@ -86,22 +43,30 @@ class CommandArgument {
     }
 
     async process(interaction) {
-        const parser = parsers[this.type] || parsers['string'];
-        const parsedArgument = await parser(interaction, this.name);
-
-        if (parsedArgument == null) {
-            return null;
-        }
-
         if (!interaction.member.permissions.has(this.permissions)) {
             throw `You do not have the permission to use the "${this.name}" argument.`;
         }
 
-        for (const check of this.checks) {
-            await check(interaction, parsedArgument);
-        }
+        if (this.num == 1) {
+            const processedArg = await this.type.processSingle(interaction, this.name);
 
-        return parsedArgument;
+            for (const check of this.checks) {
+                await check(interaction, processedArg);
+            }
+
+            return processedArg;
+        }
+        else {
+            const processedArgs = await this.type.processList(interaction, this.name);
+
+            for (const processedArg of processedArgs) {
+                for (const check of this.checks) {
+                    await check(interaction, processedArg);
+                }
+            }
+
+            return processedArgs;
+        }
     }
 }
 
