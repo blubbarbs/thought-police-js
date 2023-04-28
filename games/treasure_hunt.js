@@ -10,10 +10,10 @@ const MIN_POINT_ROLLS = 5;
 const MAX_POINT_ROLLS = 10;
 const MIN_FREEDIG_ROLLS = 3;
 const MAX_FREEDIG_ROLLS = 5;
-const MIN_POINTS = 30;
-const MAX_POINTS = 50;
-const MIN_POINTS_JACKPOT = 75;
-const MAX_POINTS_JACKPOT = 100;
+const MIN_POINTS = 300;
+const MAX_POINTS = 500;
+const MIN_POINTS_JACKPOT = 750;
+const MAX_POINTS_JACKPOT = 1000;
 const JACKPOT_PROBABILITY = .05;
 
 class TreasureHuntGame extends GridGame {
@@ -74,7 +74,7 @@ class TreasureHuntGame extends GridGame {
     }
 
     getTreasureTilesLeft() {
-        const treasureTiles = this.findTiles((tileID) => this.getTileTreasure(tileID) != null);
+        const treasureTiles = this.findTiles((tileID) => this.getTileTreasure(tileID) != null && !this.isTileDug(tileID));
 
         return treasureTiles.length;
     }
