@@ -3,7 +3,6 @@ const { JingleHandler } = require('@handlers');
 const { assert } = require('@util/checks');
 const ArgTypes = require('@command-arg-types');
 
-
 async function isAudioURL(_, arg) {
     let contentType = null;
 
